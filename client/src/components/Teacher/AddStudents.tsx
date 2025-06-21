@@ -4,9 +4,9 @@ import { Upload, Plus, Trash2, X, Users, FileText, CheckCircle, User, Mail, Grad
 import { useSelector } from "react-redux";
 import type { RootState } from "../../state/redux/store/store";
 import { checkDuplicateEmails } from "../../utils/checkDuplicateEmails";
-import { createStudent } from "../../services/studentManagment/createStudent";
 import { toast } from 'sonner';
 import InputField from "../../common/ui/InputField";
+import useAddStudent from "../../services/studentManagment/useAddStudent";
 
 const AddStudents = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('csv');
@@ -16,12 +16,13 @@ const AddStudents = ({ isOpen, onClose }) => {
   const [csvFile, setCsvFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [duplicateEmails, setDuplicateEmails] = useState([]);
-  const [loading,setLoading] = useState<boolean>(false);
 
   const fileInputRef = useRef(null);
   const { control, handleSubmit: handleFormSubmit, reset, getValues } = useForm();
 
   const teacherId = useSelector((state:RootState)=>state.teacherAuth?.id);
+
+  const {addStudent,error,loading} = useAddStudent()
 
   if (!isOpen) return null;
 
@@ -135,19 +136,15 @@ const AddStudents = ({ isOpen, onClose }) => {
       return
     }
      try {
-      setLoading(true);
-      const data  = await createStudent(allUsers,teacherId);
+      const response = await addStudent(allUsers,teacherId);
       
-      if(data?.status==201){
-        toast.success("students added successfully");
-          onClose();
-      }else{
-        toast.error(data?.data.message);
+      if(response){
+        toast.success("student added successfully");
+        // onSuccess(response)
+        onClose()
       }
      } catch (error) {
-      console.error("Error in addstudent",error)
-     }finally{
-      setLoading(false);
+      console.error("Error occured while adding student",error)
      }
   };
 

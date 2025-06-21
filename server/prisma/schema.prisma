@@ -26,6 +26,7 @@ model Teacher {
   avatar     String
   role      Role      @default(teacher)
   students  Student[]
+  tasks     Task[] 
   status    Boolean  @default(true)
   createdAt DateTime @default(now())
 }
@@ -39,6 +40,47 @@ model Student {
   role      Role      @default(student)
   teacher   Teacher   @relation(fields: [teacherId], references: [id])
   teacherId String
+  tasks     Task[]   @relation("TaskStudents") 
   status    Boolean  @default(true)
   createdAt DateTime @default(now())
+
+  TaskSubmission TaskSubmission[]
 }
+
+model Task {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?  
+  subject      String
+  assignedDate DateTime
+  dueDate      DateTime
+  text         String?
+  maxMarks     Int
+  attachments  Json?    
+  images       Json?     
+  teacher      Teacher   @relation(fields: [teacherId], references: [id])
+  teacherId    String
+  students     Student[] @relation("TaskStudents") 
+  classrooms   Json?     
+  createdAt    DateTime  @default(now())
+
+  TaskSubmission TaskSubmission[]
+}
+
+
+model TaskSubmission {
+  id          String   @id @default(uuid())
+  task        Task     @relation(fields: [taskId], references: [id])
+  taskId      String
+  student     Student  @relation(fields: [studentId], references: [id])
+  studentId   String
+  text        String?
+  attachments Json?
+  images      Json?
+  status      Boolean   @default(false) 
+  grade       Int?
+  createdAt   DateTime @default(now())
+}
+
+
+

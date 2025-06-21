@@ -14,6 +14,10 @@ import DateInputField from "../../common/ui/DateInputField";
 import ImageInputField from "../../common/ui/ImageInputField";
 import useFetchStudentAndClass from "../../services/studentManagment/useFetchStudentAndClass";
 import DropdownField from "../../common/ui/DropDownField";
+import useAddTask from "../../services/TaskManagment/useAddTask";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../state/redux/store/store";
+import { toast } from "sonner";
 
 interface FileItem {
   file: File;
@@ -35,17 +39,43 @@ interface TaskFormData {
   maxMarks: number;
 }
 
+interface UploadedFile {
+  id?: string;          
+  file: File;
+  preview?: string | null;
+  lastModified?: number;
+  lastModifiedDate?: Date;
+  name?: string;
+  size?: number;
+  type?: string;
+}
+
+export interface Task {
+  title: string;
+  description?: string;
+  subject: string;
+  assignedDate: string;  
+  dueDate: string;     
+  text: string;
+  maxMarks: number | string;
+  attachments?: UploadedFile[]; 
+  images?: UploadedFile[];     
+  students?: string[];   
+  classrooms?: string[]; 
+}
+
+
 interface AddTaskProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess:(tasks:Task)=>void
 }
 
-const AddTask = ({ isOpen, onClose }: AddTaskProps) => {
+const AddTask = ({ isOpen, onClose,onSuccess }: AddTaskProps) => {
   const { 
     control, 
     handleSubmit, 
     formState: { errors, isSubmitting }, 
-    setValue, 
     getValues,
     reset
   } = useForm<TaskFormData>({
@@ -65,6 +95,10 @@ const AddTask = ({ isOpen, onClose }: AddTaskProps) => {
     mode: "onChange",
   });
 
+  const {addTask,error:addTaskError,loading} = useAddTask()
+
+  const teacherId = useSelector((state:RootState)=>state.teacherAuth.id)
+
   const subjectOptions = [
     { value: "mathematics", label: "Mathematics" },
     { value: "science", label: "Science" },
@@ -79,7 +113,7 @@ const AddTask = ({ isOpen, onClose }: AddTaskProps) => {
  
 
 
-  const {data,error,isLoading} = useFetchStudentAndClass()
+  const {data,error:errorFetchingStudentClass,isLoading} = useFetchStudentAndClass()
 
 
 
@@ -109,27 +143,28 @@ const AddTask = ({ isOpen, onClose }: AddTaskProps) => {
       submitData.append('classrooms', JSON.stringify(data.classrooms));
       submitData.append('students', JSON.stringify(data.students));
       
-      data.attachments.forEach((item, index) => {
-        submitData.append(`attachments[${index}]`, item.file);
-      });
-      
-      data.images.forEach((item, index) => {
-        submitData.append(`images[${index}]`, item.file);
-      });
+      data.attachments.forEach((item) => {
+      submitData.append('attachments', item.file); 
+    });
 
-      console.log('Submitting task data:', data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      alert('Task created successfully!');
-      reset();
-      onClose();
+    data.images.forEach((item) => {
+      submitData.append('images', item.file); 
+    });
+if(!teacherId)return alert('credientials missing login again')
+      const result = await addTask(submitData,teacherId)
+      if(result){
+        reset();
+        onSuccess(result)
+      }
     } catch (error) {
       console.error('Error creating task:', error);
       alert('Failed to create task. Please try again.');
     }
   };
+
+  if(addTaskError){
+    toast.error(addTaskError?.message || "Error occured while adding task")
+  }
 
   if (!isOpen) return null;
 if (isLoading) {

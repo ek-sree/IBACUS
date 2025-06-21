@@ -29,6 +29,7 @@ const Students = () => {
                     <AddUser
                         isOpen={isAddUserOpen}
                         onClose={() => setIsUserOpen(false)}
+                        // onSuccess={}
                     />
             )}
             

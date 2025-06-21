@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import config from './config/index.js';
 import { authRouter } from './app/routes/authRouter.js';
 import { teacherRouter } from './app/routes/teacherRouter.js';
+import { taskRouter } from './app/routes/taskRouter.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,7 +14,7 @@ app.use((req, res, next) => {
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp'); 
     next();
   });
-// ✅ Middleware
+//  Middleware
 app.use(express.json());
 app.use(cookieParser());
 
@@ -25,11 +26,13 @@ app.use(cors({
    optionsSuccessStatus: 204 
 }));
 
-// ✅ Routes
+
+// Routes
 app.use('/api/auth', authRouter);
 app.use('/api/teacher', teacherRouter);
+app.use('/api/task', taskRouter);
 
-// ✅ Start the server
+
 app.listen(port, () => {
   console.log(`✅ Server running on http://localhost:${port}`);
 });

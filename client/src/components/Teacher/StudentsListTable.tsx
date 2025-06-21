@@ -34,6 +34,7 @@ const StudentsListTable = () => {
 
   const teacherId = useSelector((state:RootState)=>state.teacherAuth.id) || ""
 
+
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { students,totalCount, loading, error } = useFetchStudents(teacherId,currentPage,itemsPerPage,selectedClassFilter,debouncedSearchTerm);
@@ -191,7 +192,7 @@ const handleEditSuccess=(updatedStudent:Student)=>{
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {totalPages >= 1 && (
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-gray-600">
               Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, students.length)} of {students.length} students
@@ -241,7 +242,8 @@ const handleEditSuccess=(updatedStudent:Student)=>{
           isOpen={isDeleteModal}
           onClose={()=>{setIsDeleteModal(false);setSelectedStudentId(null)}}
           onConfirm={()=>handleDelete(selectedStudentId!)}
-          title={"Are you sure You want to delete this Student ?"}
+          message={"Are you sure you want to delete this student? This action cannot be undone."}
+          title={"Delete Student"}
           error={deleteError?.message}
           isLoading={isLoading}
           />

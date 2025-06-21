@@ -18,6 +18,7 @@ const useDeleteStudent = () => {
             setError(response.data?.message || "Unable to delete student");
             return false;
         }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
         console.log("Error on deleting student",error);
         setError(error?.response?.data?.message || error?.message || "Something went wrong");

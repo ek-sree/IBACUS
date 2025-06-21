@@ -19,7 +19,7 @@ createStudents = async(req:Request, res:Response)=>{
                  return
             }
             const response = await this.teacherUseCase.addStudents(data,teacherId);
-             res.status(response.status).json({message:response.message,});
+             res.status(response.status).json({message:response.message,data:response.data});
         } catch (error) {
             console.log("Error while creating students in teacherController",error)
             res.status(StatusCode.InternalServerError).json({message:"Internal server Error"});
