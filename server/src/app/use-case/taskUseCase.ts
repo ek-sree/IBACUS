@@ -80,7 +80,7 @@ export default class TaskUseCase{
         if(!result){
             return {status:StatusCode.InternalServerError,message:"Error while adding task"}
         }
-        return {status:StatusCode.OK,message:"Task added successfully",data:result};
+        return {status:StatusCode.Created,message:"Task added successfully",data:result};
        } catch (error) {
         console.log("Error occured while addig task in usecase",error);
         return {status:StatusCode.InternalServerError,message:"Internal server error"};
@@ -121,6 +121,36 @@ export default class TaskUseCase{
     return {status:StatusCode.OK,message:"Tasks fetched successfully",data:tasks.tasks,totalCount:tasks.totalCount};
         } catch (error) {
             console.log("Error occured while fetching all tasks in useCase",error)
+            return {status:StatusCode.InternalServerError,message:"Internal server error"}
+        }
+    }
+
+    async getTasksByClass(classroom:string):Promise<{status:number,message:string,data?:ITask[]}>{
+        try {
+            
+            const tasks = await this.taskRepo.findTaskByClass(classroom)
+            if(!tasks){
+                return {status:StatusCode.NotFound,message:"No tasks found"}
+            }
+            
+            return {status:StatusCode.OK,message:"Tasks fetched successfully",data:tasks};
+        } catch (error) {
+            console.log("error occured while fetching data using classroom in usecase",error);
+            return {status:StatusCode.InternalServerError,message:"Internal server error"}
+        }
+    }
+
+    async getTasksByStudent(studentId:string):Promise<{status:number,message:string,data?:ITask[]}>{
+        try {
+            
+            const tasks = await this.taskRepo.findTaskByStudent(studentId)
+            if(!tasks){
+                return {status:StatusCode.NotFound,message:"No tasks found"}
+            }
+            
+            return {status:StatusCode.OK,message:"Tasks fetched successfully",data:tasks};
+        } catch (error) {
+            console.log("error occured while fetching data using student in usecase",error);
             return {status:StatusCode.InternalServerError,message:"Internal server error"}
         }
     }

@@ -29,12 +29,13 @@ export interface Task {
 }
 
 
-const useFetchTask = (page:number=1,limit:number=5,search:string,sort?:string,teacherId?:string, classroom?:string, studendId?:string,taskId?:string) => {
+const useFetchTask = (page:number=1,limit:number=5,search?:string,sort?:string,teacherId?:string, classroom?:string, studendId?:string,taskId?:string) => {
   const [tasks,setTasks]=useState<Task[]>([])
   const [loading,setLoading]=useState<boolean>(false);
   const [error,setError]=useState<string|null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
 const fetchTasks = async () => {
+  
   setLoading(true);
   try {
     const response = await Axios.get(TEACHER_ENDPOINTS.GET_TASKS, {

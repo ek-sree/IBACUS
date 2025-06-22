@@ -9,8 +9,8 @@ const authController = new AuthController();
 
 authRouter.post("/google/teacher", authController.loginGoogleTeacher);
 authRouter.post("/microsoft/teacher", authController.loginMicrosoftTeacher);
-// authRouter.post("/auth/google/student", authController.loginGoogle);
-// authRouter.post("/auth/microsoft/student", authController.loginMicrosoft);
+authRouter.post("/google/student", authController.loginGoogleTeacher);
+authRouter.post("/microsoft/student", authController.loginMicrosoftTeacher);
 
 authRouter.post("/logout", authController.logout)
 

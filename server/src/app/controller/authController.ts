@@ -11,11 +11,13 @@ export default class AuthController{
 
     loginGoogleTeacher= async (req:Request,res:Response)=>{
         try {
-           const { code } = req.body;
+           const { code,role } = req.body;
+           
     try {
-      const result = await this.authUseCase.teacherLoginGoogle(code);
+      const result = await this.authUseCase.teacherLoginGoogle(code,role);
+      
       res.cookie("refreshToken", result.refreshToken, { httpOnly: true });
-      res.status(result.status).json({ message: result.message, data: result.teacher, accessToken: result.accessToken });
+      res.status(result.status).json({ message: result.message, data: result.user, accessToken: result.accessToken });
     } catch {
       res.status(StatusCode.InternalServerError).json({ message: "Internal server error" });
     }
@@ -27,13 +29,13 @@ export default class AuthController{
 
 loginMicrosoftTeacher = async (req: Request, res: Response) => {
   try {
-    const { token } = req.body;
-    const result = await this.authUseCase.teacherLoginMicrosoft(token);
+    const { token,role } = req.body;
+    const result = await this.authUseCase.teacherLoginMicrosoft(token,role);
     res.cookie("refreshToken", result.refreshToken, { httpOnly: true });
     
     res.status(result.status).json({
       message: result.message,
-      data: result.teacher,
+      data: result.user,
       accessToken: result.accessToken,
     });
   } catch (error) {

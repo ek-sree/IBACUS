@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import InputField from "../../common/ui/InputField";
 import useAddStudent from "../../services/studentManagment/useAddStudent";
 
-const AddStudents = ({ isOpen, onClose }) => {
+const AddStudents = ({ isOpen, onClose,onSuccess }) => {
   const [activeTab, setActiveTab] = useState('csv');
   const [csvData, setCsvData] = useState([]);
   const [manualUsers, setManualUsers] = useState([]);
@@ -140,7 +140,7 @@ const AddStudents = ({ isOpen, onClose }) => {
       
       if(response){
         toast.success("student added successfully");
-        // onSuccess(response)
+        onSuccess(response)
         onClose()
       }
      } catch (error) {

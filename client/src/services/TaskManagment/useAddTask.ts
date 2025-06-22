@@ -42,8 +42,9 @@ const useAddTask = () =>{
                     'Content-Type': `multipart/form-data`,
                   }
             })
+            
             if(response.status===201){
-                return response.data.task;
+                return response.data;
             }else{
                 setError(response.data.message || "Failed to add task")
                 return false;

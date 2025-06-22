@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom"
 import TeacherRoute from "./routes/TeacherRoute/TeacherRoute"
 import { Toaster } from "sonner"
+import StudentRoute from "./routes/StudentRoute/StudentRoute"
 
 function App() {
 
@@ -9,7 +10,7 @@ function App() {
               <Toaster richColors position="top-center"/>
       <Routes>
 
-              {/* <Route path="/*" element={<UserRoute />} /> */}
+              <Route path="/*" element={<StudentRoute />} />
               <Route path="/teacher/*" element={<TeacherRoute />} />
       </Routes>
     </>

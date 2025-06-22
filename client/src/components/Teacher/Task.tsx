@@ -5,6 +5,13 @@ import TaskListTable from "./TaskListTable"
 
 const Task = () => {
     const [isAddTaskOpen, setIsAddTaskOpen] = useState<boolean>(false)
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    
+
+    const handleAddSuccess=()=>{
+        setRefreshTrigger(pre=>pre+1)
+        setIsAddTaskOpen(false)
+    }
 
     return (
         <div className="p-4">
@@ -29,11 +36,12 @@ const Task = () => {
                     <AddTask
                         isOpen={isAddTaskOpen}
                         onClose={() => setIsAddTaskOpen(false)}
+                        onSuccess={handleAddSuccess}
                     />
                 </div>
             )}
             
-           <TaskListTable/>
+           <TaskListTable key={refreshTrigger}/>
         </div>
     )
 }

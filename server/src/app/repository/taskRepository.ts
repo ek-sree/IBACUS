@@ -30,6 +30,7 @@ export class TaskRepository {
 
     async findAllTasks(data:IGetTasks) {
   try {
+    
     const where: any = {};
     const orderBy: any[] = [];
 
@@ -77,6 +78,7 @@ export class TaskRepository {
         return cls.includes(data.classroom as string); 
       });
     }
+    
 if(!tasks || !totalCount){
     return null
 }
@@ -90,24 +92,57 @@ if(!tasks || !totalCount){
   }
 }
 
+
+async findTaskByClass(classroom: string) {
+  try {
+    const allTasks = await prisma.task.findMany(); 
+    const tasks = allTasks.filter((task) => {
+      const clsArray = Array.isArray(task.classrooms) ? task.classrooms : [];
+      return clsArray.includes(classroom);
+    });
+    return tasks || null;
+  } catch (error) {
+    console.log(
+      "Error occurred while fetching tasks by classroom in repo",
+      error
+    );
+    return null;
+  }
+}
+
+
+async findTaskByStudent(studentId: string) {
+  try {
+    console.log("Fetching tasks by student ID:", studentId);
+    
+    const tasks = await prisma.task.findMany({where:{students:{some:{id:studentId}}}}); 
+    console.log("Fetched tasks:", tasks);
+    
+    return tasks || null;
+  } catch (error) {
+    console.log(
+      "Error occurred while fetching tasks by student in repo",
+      error
+    );
+    return null;
+  }
+}
+
+
 async deleteTaskById(id:string){
     try {
         const foundTask = await prisma.task.findUnique({ where: { id } });
         if(!foundTask){
             return null
         }
-        console.log("DATA FOUND",foundTask);
         
-//here parse attachments & images JSON if they exist
           const attachments = (foundTask.attachments as any) || [];
     const images = (foundTask.images as any) || [];
-console.log("IMAGES AND ATTACKHMENTS",attachments,images);
 
      const allFiles: string[] = [
       ...attachments.map((file: any) => file.url || file), 
       ...images.map((file: any) => file.url || file)
     ];
-console.log("ALLFILES",allFiles);
 
      for (const fileUrl of allFiles) {
       try {

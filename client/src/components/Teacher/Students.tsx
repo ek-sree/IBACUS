@@ -6,6 +6,12 @@ import StudentsListTable from "./StudentsListTable"
 const Students = () => {
 
     const [isAddUserOpen, setIsUserOpen] = useState<boolean>(false)
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+      const handleAddSuccess = () => {
+    setRefreshTrigger(prev => prev + 1);
+    setIsUserOpen(false);
+  };
 
   return (
         <div className="p-4">
@@ -29,11 +35,11 @@ const Students = () => {
                     <AddUser
                         isOpen={isAddUserOpen}
                         onClose={() => setIsUserOpen(false)}
-                        // onSuccess={}
+                        onSuccess={handleAddSuccess}
                     />
             )}
             
-           <StudentsListTable/>
+           <StudentsListTable key={refreshTrigger}/>
         </div>
   )
 }

@@ -3,11 +3,11 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { PublicClientApplication } from "@azure/msal-browser";
 import { useState } from "react";
 import { saveAccessTokenToSession } from "../../utils/tokenUtlis";
-import { handleGoogleLogin } from "../../services/auth/googleLoginService";
-import { handleMicrosoftLogin } from "../../services/auth/microsoftLoginService";
 import { useDispatch } from "react-redux";
 import { setTeacher } from "../../state/redux/slices/teacherSlice";
 import { setStudent } from "../../state/redux/slices/studentSlice";
+import useGoogleSignin from "../../services/auth/useGoogleLogin";
+import useMicrosoftLogin from "../../services/auth/useMicrosoftLogin";
 
 const msalConfig = {
   auth: {
@@ -19,13 +19,15 @@ const msalConfig = {
 const msalInstance = new PublicClientApplication(msalConfig);
 
 const Signin = () => {
-  const [loadingGoogle, setLoadingGoogle] = useState(false);
-  const [loadingMS, setLoadingMS] = useState(false);
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
   const location = useLocation();
   const isTeacher = location.pathname.includes("/teacher");
+  const role = isTeacher ? "TEACHER" : "STUDENT";
+
+  const {error:googleLoginError,googleSignin,loading:loadingGoogle} = useGoogleSignin()
+  const {error:msLoginError,loading:loadingMS,loginWithMicrosoft} = useMicrosoftLogin()
 
   const dispatch = useDispatch();
 
@@ -33,38 +35,38 @@ const Signin = () => {
   const onGoogleSuccess = async (res) => {
     const { code } = res;
     try {
-      setLoadingGoogle(true);
-      const data = await handleGoogleLogin(code, isTeacher);
+      const data = await googleSignin(code, role);
+console.log("DATA",data);
 
-      if (data?.status === 200) {
-        
-        saveAccessTokenToSession(data.data.accessToken);
+      if (data) {
+        saveAccessTokenToSession(data.accessToken);
         if (isTeacher) {
           dispatch(
             setTeacher({
-              id: data.data.data.id,
-              name: data.data.data.name,
-              email: data.data.data.email,
-              avatarUrl: data.data.data.avatar,
+              id: data.data.id,
+              name: data.data.name,
+              email: data.data.email,
+              avatarUrl: data.data.avatar,
             })
           );
         } else {
           dispatch(
-            setStudent({ id: data.data.id, name: data.data.name, email: data.data.email })
+            setStudent({
+              id: data.data.id,
+              name: data.data.name,
+              class:data.data.class,
+              email: data.data.email,
+            })
           );
         }
         navigate(isTeacher ? "/teacher/dashboard" : "/");
-      } else if (data?.status === 401) {
-        setError("Invalid credentials");
       } else {
-        setError("Something went wrong");
-      }
+        setError(googleLoginError||"Invalid credentials");
+      } 
     } catch (err) {
       setError("Google login failed");
       console.error("Login error", err);
-    } finally {
-      setLoadingGoogle(false);
-    }
+    } 
   };
 
   const googleLogin = useGoogleLogin({
@@ -75,35 +77,38 @@ const Signin = () => {
   // MICROSOFT LOGIN
   const handleMsalLogin = async () => {
     try {
-      setLoadingMS(true);
       await msalInstance.initialize();
       const loginResponse = await msalInstance.loginPopup({
         scopes: ["openid", "profile", "email"],
       });
       const idToken = loginResponse.idToken;
 
-      const data = await handleMicrosoftLogin(idToken, isTeacher);
+      const data = await loginWithMicrosoft(idToken,role)
+      console.log("DA",data);
       
       saveAccessTokenToSession(data.data.accessToken);
-       if (isTeacher) {
-          dispatch(
-            setTeacher({
-              id: data.data.data.id,
-              name: data.data.data.name,
-              email: data.data.data.email,
-              avatarUrl: data.data.data.avatar,
-            })
-          );
-        } else {
-          dispatch(
-            setStudent({ id: data.data.id, name: data.data.name, email: data.data.email })
-          );
-        }
+      if (isTeacher) {
+        dispatch(
+          setTeacher({
+            id: data.data.id,
+            name: data.data.name,
+            email: data.data.email,
+            avatarUrl: data.data.avatar,
+          })
+        );
+      } else {
+        dispatch(
+          setStudent({
+            id: data.data.id,
+            name: data.data.name,
+            class:data.data.class,
+            email: data.data.email,
+          })
+        );
+      }
       navigate(isTeacher ? "/teacher/dashboard" : "/");
     } catch (err) {
       console.error("Microsoft login failed", err);
-    } finally {
-      setLoadingMS(false);
     }
   };
 
@@ -174,7 +179,9 @@ const Signin = () => {
               )}
             </button>
           </div>
-          <div className="text-center mt-4">{error && <p className="text-red-500">{error}</p>}</div>
+          <div className="text-center mt-4">
+            {error && <p className="text-red-500">{error}</p>}
+          </div>
           <div className="mt-8 pt-6 border-t border-gray-200 text-center">
             <p className="text-gray-500 text-sm">
               By signing in, you agree to our{" "}

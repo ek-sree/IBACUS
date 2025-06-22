@@ -31,18 +31,19 @@ export const uploadImageToCloudinary = async (fileBuffer: Buffer): Promise<Uploa
 
 export const deleteImageFromCloudinary = async (imageUrl: string): Promise<void> => {
   try {
-    // Get the part after "upload/" (e.g. IBACUS/filename)
     const afterUpload = imageUrl.split('/upload/')[1]; 
-    if (!afterUpload) {
-      throw new Error('Could not parse public_id from imageUrl');
-    }
+    if (!afterUpload) throw new Error('Could not parse public_id from imageUrl');
+
+    // Remove version part if present (v12345678/)
+    const versionRemoved = afterUpload.replace(/^v\d+\//, '');
 
     // Remove file extension
-    const publicId = afterUpload.split('.')[0]; 
+    const publicId = versionRemoved.replace(/\.[^/.]+$/, '');
 
-    await cloudinary.uploader.destroy(publicId);
+    await cloudinary.uploader.destroy(publicId); 
   } catch (error) {
     console.error('Error deleting from Cloudinary:', error);
     throw error;
   }
 };
+

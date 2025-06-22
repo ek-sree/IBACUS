@@ -47,11 +47,38 @@ try {
     };
   
 	const result=await this.taskUseCase.getTasks(payload)
+  
 	res.status(result.status).json({message:result.message,data:result.data,totalCount:result.totalCount})
 }catch(error){
-	console.error("Error occurred while fetching tasks in controller:", error);
+	console.log("Error occurred while fetching tasks in controller:", error);
 	res.status(StatusCode.InternalServerError).json({ message: "Internal server error" });
 }
+  }
+
+  getTasksByClass = async(req:Request,res:Response)=>{
+    try {
+      const classroom = req.query.classroom as string
+      
+      const result=await this.taskUseCase.getTasksByClass(classroom)  
+
+      res.status(result.status).json({message:result.message,data:result.data})
+    } catch (error) {
+      console.log("Error occured while fetching task by classroom in controller",error)
+      res.status(StatusCode.InternalServerError).json({message:"Internal Server Error"})
+    }
+  }
+
+    getTasksByStudent = async(req:Request,res:Response)=>{
+    try {
+      const studentId = req.query.studentId as string
+      
+      const result=await this.taskUseCase.getTasksByStudent(studentId)  
+
+      res.status(result.status).json({message:result.message,data:result.data})
+    } catch (error) {
+      console.log("Error occured while fetching task by studentId in controller",error)
+      res.status(StatusCode.InternalServerError).json({message:"Internal Server Error"})
+    }
   }
 
   deleteTask= async(req:Request,res:Response)=>{

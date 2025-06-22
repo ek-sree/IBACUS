@@ -7,11 +7,34 @@ import * as jose from "jose";
 import jwksClient from "jwks-rsa";
 import { AuthRepository } from "../repository/authRepository.js";
 
+type AuthUser = Teacher | Student;
+
 interface Teacher {
+  id: string;
   email: string;
   name: string;
   role: string;
-  avatar?: string;
+  avatar: string;
+  createdAt: Date;
+  status: boolean;
+  // and any other fields a teacher has
+}
+
+interface Student {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  avatar: string | null;  // matches Prisma's optional
+  createdAt: Date;
+  status: boolean;
+  class: string;
+  teacherId: string;
+}
+
+enum Role {
+  TEACHER = "TEACHER",
+  STUDENT = "STUDENT",
 }
 export class AuthUseCase {
   private authRepo: AuthRepository;
@@ -30,7 +53,7 @@ export class AuthUseCase {
     });
   }
 
-  async teacherLoginGoogle(code: string): Promise<{ status: number; message: string; teacher?: Teacher,accessToken?:string,refreshToken?:string }> {
+  async teacherLoginGoogle(code: string,role:Role): Promise<{ status: number; message: string; user?: AuthUser,accessToken?:string,refreshToken?:string }> {
     try {
 
       // Exchange authorization code for tokens
@@ -48,19 +71,30 @@ export class AuthUseCase {
       }
 
       const { email, name, picture } = payload;
-      const teacher = await this.authRepo.findOrCreateTeacher(
-        email!,
-        name!,
-        picture!,
-        "TEACHER"
-      );
-      if (!teacher) {
-        return { status: StatusCode.InternalServerError, message: "Something went wrong" };
-      }
-    const accessToken = generateAccessToken({ id: teacher.id, role: teacher.role });
-    const refreshToken = generateRefreshToken({ id: teacher.id, role: teacher.role });
+      let user;
+      if (role === Role.TEACHER) {
+  user = await this.authRepo.findOrCreateTeacher(
+    email!, 
+    name!, 
+    picture!, 
+    role
+  );
+} else if (role === Role.STUDENT) {
+  user = await this.authRepo.findStudent(
+    email!, 
+    name!, 
+    picture!, 
+    role
+  );
+} 
 
-      return { status: StatusCode.OK, message: "Success", teacher,accessToken,refreshToken };
+if(!user){
+return{status:StatusCode.NotFound,message:"User not found"};
+}
+    const accessToken = generateAccessToken({ id: user.id, role: user.role });
+    const refreshToken = generateRefreshToken({ id: user.id, role: user.role });
+
+      return { status: StatusCode.OK, message: "Success", user,accessToken,refreshToken };
     } catch (error: any) {
       console.log("Error in auth use case", error);
       return { status: StatusCode.InternalServerError, message: error };
@@ -68,47 +102,71 @@ export class AuthUseCase {
   }
 
 
-    async teacherLoginMicrosoft(token: string): Promise<{
+     async teacherLoginMicrosoft(
+    token: string,
+    role: Role
+  ): Promise<{
     status: number;
     message: string;
-    teacher?: Teacher;
+    user?: AuthUser;
     accessToken?: string;
     refreshToken?: string;
   }> {
     try {
+      // Decode header and payload without verifying
+      const decodedHeader = jose.decodeProtectedHeader(token); // { alg, kid, ... }
+      const decodedPayload = jose.decodeJwt(token); // { iss, ... }
 
-    const decodedHeader = jose.decodeProtectedHeader(token);
-    const decodedPayload = jose.decodeJwt(token); 
+      // Get public key
+      const key = await this.jwks.getSigningKey(decodedHeader.kid!);
+      const publicKey = key.getPublicKey();
+      const keyObject = createPublicKey(publicKey);
 
-    const key = await this.jwks.getSigningKey(decodedHeader.kid);
-    const publicKey = key.getPublicKey();
-    const keyObject = createPublicKey(publicKey);
+      // Verify token
+      const { payload } = await jose.jwtVerify(
+        token,
+        keyObject,
+        {
+          issuer: decodedPayload.iss as string,
+          audience: config.MS_CLIENT_ID,
+        }
+      );
 
-    const { payload } = await jose.jwtVerify(token, keyObject, {
-      issuer: decodedPayload.iss as string,
-      audience: config.MS_CLIENT_ID,
-    });
+      // Extract Microsoft account details
+      const name = payload.name as string;
+      const email = payload.preferred_username as string;
 
-
-      const { name, preferred_username: email } = payload;
       if (!email || !name) {
         return { status: 400, message: "Invalid Microsoft token" };
       }
- const picture = "";
-      const teacher = await this.authRepo.findOrCreateTeacher(
-        email as string,
-        name as string,
-        picture as string,
-        "TEACHER"
-      );
 
-      const accessToken = generateAccessToken({ id: teacher.id, role: teacher.role });
-      const refreshToken = generateRefreshToken({ id: teacher.id, role: teacher.role });
+      let user: AuthUser | null = null;
+      if (role === Role.TEACHER) {
+        user = await this.authRepo.findOrCreateTeacher(email, name, "", role);
+      } else if (role === Role.STUDENT) {
+        user = await this.authRepo.findStudent(email, name, "", role);
+      }
 
-      return { status: StatusCode.OK, message: "Success", teacher, accessToken, refreshToken };
+      if (!user) {
+        return { status: StatusCode.BadRequest, message: "User not found" };
+      }
+
+      const accessToken = generateAccessToken({ id: user.id, role: user.role });
+      const refreshToken = generateRefreshToken({ id: user.id, role: user.role });
+
+      return {
+        status: StatusCode.OK,
+        message: "Success",
+        user,
+        accessToken,
+        refreshToken,
+      };
     } catch (error) {
       console.error("Microsoft token verification failed", error);
-      return { status: StatusCode.InternalServerError, message: "Token verification failed" };
+      return {
+        status: StatusCode.InternalServerError,
+        message: "Token verification failed",
+      };
     }
   }
 
