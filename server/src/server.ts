@@ -5,6 +5,7 @@ import config from './config/index.js';
 import { authRouter } from './app/routes/authRouter.js';
 import { teacherRouter } from './app/routes/teacherRouter.js';
 import { taskRouter } from './app/routes/taskRouter.js';
+import { studentRouter } from './app/routes/studentRouter.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -31,6 +32,7 @@ app.use(cors({
 app.use('/api/auth', authRouter);
 app.use('/api/teacher', teacherRouter);
 app.use('/api/task', taskRouter);
+app.use('/api/student', studentRouter);
 
 
 app.listen(port, () => {

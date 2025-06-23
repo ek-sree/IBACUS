@@ -2,18 +2,21 @@ import { useEffect, useState } from "react"
 import Axios from "../../api/axios/axios"
 import { TEACHER_ENDPOINTS } from "../../api/endpoints/teacherEndpoints"
 
-const useFetchTaskByClass = (classroom:string) => {
+const useFetchStudentTaskBy = (studentId:string,classroom:string) => {
     const [error,setError] = useState<string | null>(null)
     const [loading, setLoading] = useState<boolean>(false)
-    const [data, setData] = useState<any[]>([])
+    const [pendingTasks, setPendingTasks] = useState([])
+    const [completedTasks, setCompletedTasks] = useState([])
 
-    const fetchTaskByClass=async()=>{
+    const fetchStudentsTask=async()=>{
         
         setLoading(true)
         try {
-            const response = await Axios.get(`${TEACHER_ENDPOINTS.GET_TASK_BY_CLASS}?classroom=${classroom}`)
+            const response = await Axios.get(`${TEACHER_ENDPOINTS.GET_STUDENTS_TASKS}?studentId=${studentId}&classroom=${classroom}`)
+            
             if(response.status===200){
-                setData(response.data.data)
+                setPendingTasks(response.data.pendingTasks || [])
+                setCompletedTasks(response.data.completedTasks || [])
             }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,14 +29,15 @@ const useFetchTaskByClass = (classroom:string) => {
     }
 
     useEffect(()=>{
-        fetchTaskByClass()
-    },[classroom])
+        fetchStudentsTask()
+    },[studentId,classroom])
 
     return{
         error,
         loading,
-        data
+        pendingTasks,
+        completedTasks
     }
 }
 
-export default useFetchTaskByClass
+export default useFetchStudentTaskBy

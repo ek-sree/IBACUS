@@ -11,6 +11,7 @@ export const TEACHER_ENDPOINTS = {
   ADD_TASK: `${BASE_URL}/task/add-task`,
   GET_TASKS: `${BASE_URL}/task/get-tasks`,
   DELETE_TASK: `${BASE_URL}/task/delete-task`,
-  GET_TASK_BY_CLASS: `${BASE_URL}/task/get-class-tasks`,
-  GET_TASK_BT_STUDENT: `${BASE_URL}/task/get-student-tasks`
+
+  
+  GET_STUDENTS_TASKS: `${BASE_URL}/task/get-students-tasks`,
 };

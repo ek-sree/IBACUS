@@ -18,7 +18,6 @@ export class TaskController{
     const images = files?.images;
     const teacherId = req.params.teacherId;
 
-
 const result = await this.taskUseCase.addTask(data,teacherId,pdfs,images );
     res.status(StatusCode.Created).json({ message: "Task created successfully",data:result.data })
   } catch (error) {
@@ -55,31 +54,21 @@ try {
 }
   }
 
-  getTasksByClass = async(req:Request,res:Response)=>{
+  getTasksByClassroomAndStudent = async(req:Request,res:Response)=>{
     try {
       const classroom = req.query.classroom as string
+      const studentId = req.query.studentId as string
       
-      const result=await this.taskUseCase.getTasksByClass(classroom)  
+      const result=await this.taskUseCase.getTasksByClassroomAndStudent(studentId,classroom)  
 
-      res.status(result.status).json({message:result.message,data:result.data})
+      res.status(result.status).json({message:result.message,pendingTasks:result.pendingTasks,completedTasks:result.completedTasks})
     } catch (error) {
       console.log("Error occured while fetching task by classroom in controller",error)
       res.status(StatusCode.InternalServerError).json({message:"Internal Server Error"})
     }
   }
 
-    getTasksByStudent = async(req:Request,res:Response)=>{
-    try {
-      const studentId = req.query.studentId as string
-      
-      const result=await this.taskUseCase.getTasksByStudent(studentId)  
-
-      res.status(result.status).json({message:result.message,data:result.data})
-    } catch (error) {
-      console.log("Error occured while fetching task by studentId in controller",error)
-      res.status(StatusCode.InternalServerError).json({message:"Internal Server Error"})
-    }
-  }
+ 
 
   deleteTask= async(req:Request,res:Response)=>{
     try {

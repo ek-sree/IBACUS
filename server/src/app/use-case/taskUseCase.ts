@@ -125,36 +125,22 @@ export default class TaskUseCase{
         }
     }
 
-    async getTasksByClass(classroom:string):Promise<{status:number,message:string,data?:ITask[]}>{
+    async getTasksByClassroomAndStudent(studentId:string,classroom:string):Promise<{status:number,message:string,pendingTasks?: ITask[],completedTasks?: ITask[];}>{
         try {
             
-            const tasks = await this.taskRepo.findTaskByClass(classroom)
+            const tasks = await this.taskRepo.findTasksByClassroomAndStudent(studentId,classroom)
             if(!tasks){
                 return {status:StatusCode.NotFound,message:"No tasks found"}
             }
             
-            return {status:StatusCode.OK,message:"Tasks fetched successfully",data:tasks};
+            return {status:StatusCode.OK,message:"Tasks fetched successfully",pendingTasks:tasks.pendingTasks,completedTasks:tasks.completedTasks};
         } catch (error) {
             console.log("error occured while fetching data using classroom in usecase",error);
             return {status:StatusCode.InternalServerError,message:"Internal server error"}
         }
     }
 
-    async getTasksByStudent(studentId:string):Promise<{status:number,message:string,data?:ITask[]}>{
-        try {
-            
-            const tasks = await this.taskRepo.findTaskByStudent(studentId)
-            if(!tasks){
-                return {status:StatusCode.NotFound,message:"No tasks found"}
-            }
-            
-            return {status:StatusCode.OK,message:"Tasks fetched successfully",data:tasks};
-        } catch (error) {
-            console.log("error occured while fetching data using student in usecase",error);
-            return {status:StatusCode.InternalServerError,message:"Internal server error"}
-        }
-    }
-
+ 
     async deleteTask(id:string):Promise<{status:number,message:string}>{
         try {
             if(!id || typeof id!=="string"){

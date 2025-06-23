@@ -74,7 +74,9 @@ model TaskSubmission {
   taskId      String
   student     Student  @relation(fields: [studentId], references: [id])
   studentId   String
-  text        String?
+  teacherId   String
+  marks       Int
+  text        String
   attachments Json?
   images      Json?
   status      Boolean   @default(false) 

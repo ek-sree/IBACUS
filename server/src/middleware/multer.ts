@@ -44,14 +44,21 @@ export const uploadMiddleware = (
   ]);
 
   uploader(req, res, (err: unknown) => {
+    console.log("HERE to");
+    
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(StatusCode.BadRequest).json({ message: 'File too big!' });
       }
+      console.log("ERR",err.message);
+      
       return res.status(StatusCode.BadRequest).json({ message: err.message });
     } else if (err instanceof Error) {
+      console.log("ERR2",err.message);
       return res.status(StatusCode.BadRequest).json({ message: err.message });
     }
+    console.log("je");
+    
     next();
   });
 };

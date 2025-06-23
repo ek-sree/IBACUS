@@ -9,6 +9,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import store, { persistor } from "./state/redux/store/store.ts";
 
+
 const msalInstance = new PublicClientApplication({
   auth: {
     clientId: import.meta.env.VITE_MS_CLIENT_ID,

@@ -7,4 +7,6 @@ export const STUDENT_ENDPOINTS = {
   EDIT_STUDENT: `${BASE_URL}/teacher/edit-student`,
   GET_STUDENT_CLASS: `${BASE_URL}/teacher/get-student-class`,
 
+
+  ADD_TASK_ANSWERS: `${BASE_URL}/student/add-task-answers`,
 };
