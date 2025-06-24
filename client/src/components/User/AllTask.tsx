@@ -15,6 +15,7 @@ import { countDueSoon } from "../../utils/calculateDueSoon";
 import CompletedTaskTable from "./CompletedTaskTable";
 import OngoingTaskTable from "./OngoingTaskTable";
 import useFetchStudentTaskBy from "../../services/studentManagments/useFetchStudentTask";
+import { filterAndSortTasks } from "../../utils/filter-sort";
 
 const sortOptions = [
   { value: "assignedDateAsc", label: "Assign Date asc - desc" },
@@ -38,30 +39,9 @@ const AllTask = () => {
   const totalCount = pendingTasks.length + completedTasks.length
 
 
-  const allTasks = [...pendingTasks, ...completedTasks]
+  const filteredPendingTasks = filterAndSortTasks(pendingTasks,searchTerm, sortBy);
+const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sortBy);
 
-  const filteredTasks = allTasks
-    .filter((task) => {
-      return (
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.subject.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    })
-    .sort((a, b) => {
-      if (sortBy === "assignedDateAsc") {
-        return new Date(a.assignedDate) - new Date(b.assignedDate);
-      }
-      if (sortBy === "assignedDateDesc") {
-        return new Date(b.assignedDate) - new Date(a.assignedDate);
-      }
-      if (sortBy === "dueDateAsc") {
-        return new Date(a.dueDate) - new Date(b.dueDate);
-      }
-      if (sortBy === "dueDateDesc") {
-        return new Date(b.dueDate) - new Date(a.dueDate);
-      }
-      return 0;
-    });
 
   // Reset current page when switching tabs
   useEffect(() => {
@@ -131,7 +111,7 @@ const AllTask = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Due Soon</p>
                 <p className="text-3xl font-bold text-red-600">
-                  {countDueSoon(filteredTasks)}
+                  {countDueSoon(pendingTasks)}
                 </p>
               </div>
               <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -218,7 +198,7 @@ const AllTask = () => {
         {/* Task Tables */}
         {activeTab === 'pending' ? (
           <OngoingTaskTable
-            tasks={pendingTasks}
+            tasks={filteredPendingTasks}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             itemsPerPage={itemsPerPage}
@@ -227,7 +207,7 @@ const AllTask = () => {
           />
         ) : (
           <CompletedTaskTable
-            tasks={completedTasks}
+            tasks={filteredCompletedTasks}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             itemsPerPage={itemsPerPage}

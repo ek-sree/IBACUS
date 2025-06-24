@@ -103,4 +103,36 @@ export class TeacherUseCase {
       return {status:StatusCode.InternalServerError,message:"Internal server error"};
     }
   }
+
+  async getStudentsByTaskId(taksId:string,page:number,limit:number,search?:string):Promise<{status:number,message:string,data?:StudentsData[],totalCount?:number}>{
+    try {
+      if(!taksId){
+        return {status:StatusCode.BadRequest,message:"Invalid Task Id"}
+      }
+      const result = await this.repository.findStudentsByTaskId(taksId,page,limit,search);
+      if(!result){
+        return {status:StatusCode.InternalServerError,message:"Unable to get students by taskId"};
+      }
+      return {status:StatusCode.OK,message:"Success",data:result.data, totalCount:result.totalCount};
+    } catch (error) {
+      console.log("Error getting students by taskid in teacherusecase",error)
+      return {status:StatusCode.InternalServerError,message:"Internal server error"};
+    }
+  }
+
+  async getSubmissionAnswer(taskId:string,studendId:string):Promise<{status:number,message:string,data?:any}>{
+    try {
+      console.log("Getting Submission Answer idss",taskId,studendId);
+      console.log("Getting Submission Answer idss",typeof(taskId),typeof(studendId));
+      
+      if(!taskId.trim() || typeof(taskId)!=="string" || !studendId.trim() || typeof(studendId)!=="string"){
+        return {status:StatusCode.BadRequest,message:"Invalid Input"};
+      }
+      const result = await this.repository.findSubmittedAnswer(taskId,studendId);
+      return {status:StatusCode.OK,message:"Success",data:result};
+    } catch (error) {
+      console.log("Error getting submission answer in teacherusecase",error);
+      return {status:StatusCode.InternalServerError,message:"Internal server error"};
+    }
+  }
 }

@@ -23,16 +23,16 @@ import useAddTaskAnswer from "../../services/studentManagments/useAddTaskAnswer"
 import { useSelector } from "react-redux";
 import type { RootState } from "../../state/redux/store/store";
 import { toast } from "sonner";
+import ViewImageModal from "../../common/modal/ViewImageModal";
 
 const ViewAndAnswerTask = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [currentPreviewUrl, setCurrentPreviewUrl] = useState("");
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
 
   const location = useLocation();
   const task = location.state?.task;
-console.log("LOG",task);
 
 const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefined
 
@@ -105,38 +105,15 @@ console.log("LOF",data);
   };
 
   const handlePreview = (url) => {
-    setCurrentPreviewUrl(url);
+    setImagePreviewUrl(url);
     setIsPreviewOpen(true);
   };
-  const closePreview = () => setIsPreviewOpen(false);
 
 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative">
-      {/* Modal preview */}
-      {isPreviewOpen && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <button
-            className="absolute top-4 right-4 p-2 bg-white rounded-full"
-            onClick={closePreview}
-          >
-            <X className="w-6 h-6 text-black" />
-          </button>
-          {currentPreviewUrl.endsWith(".pdf") ? (
-            <iframe
-              src={currentPreviewUrl}
-              className="w-full h-full border-none"
-            ></iframe>
-          ) : (
-            <img
-              src={currentPreviewUrl}
-              alt="Preview"
-              className="max-h-full max-w-full object-contain"
-            />
-          )}
-        </div>
-      )}
+
 
       <div className="relative z-10 max-w-6xl mx-auto p-6 space-y-8">
         {/* Header */}
@@ -376,6 +353,15 @@ console.log("LOF",data);
             isOpen={isPdfModalOpen}
             onClose={()=>setIsPdfModalOpen(false)}
             />
+        )
+      }
+      {
+        isPreviewOpen &&(
+          <ViewImageModal
+          imagePreviewUrl={imagePreviewUrl}
+          isOpen={isPreviewOpen}
+          onClose={()=>setIsPreviewOpen(false)}
+          />
         )
       }
     </div>

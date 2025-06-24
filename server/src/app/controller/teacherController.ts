@@ -80,4 +80,33 @@ createStudents = async(req:Request, res:Response)=>{
         }
     }
 
+    getStudentByTaskId= async(req:Request,res:Response)=>{
+        try {
+            const taksId = req.query.taskId as string;
+            const page = Number(req.query.page)||1;
+            const limit = Number(req.query.limit)||5;
+            const search = req.query.searchTerm as string|undefined;
+            const response = await this.teacherUseCase.getStudentsByTaskId(taksId,page,limit,search);
+            
+            res.status(response.status).json({message:response.message,data:response.data,totalCount:response.totalCount});
+        } catch (error) {
+            console.log("Error occured while getting students by taskId",error);
+            res.status(StatusCode.InternalServerError).json({message:"Internal Server error"})
+        }
+    }
+
+    getSubmissionAnswers = async(req:Request,res:Response)=>{
+        console.log("LOF");
+        
+        try {
+            const taskId = req.params.taskId;
+            const studentId = req.params.studentId;
+            const response = await this.teacherUseCase.getSubmissionAnswer(taskId,studentId);
+            res.status(response.status).json({message:response.message,data:response.data});
+        } catch (error) {
+            console.log("Error occured while fetching submission answer from controller",error)
+            res.status(StatusCode.InternalServerError).json({message:"Internal Server error"})
+        }
+    }
+
 }

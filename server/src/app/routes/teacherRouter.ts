@@ -9,5 +9,7 @@ teacherRouter.get("/get-all-students", teacherController.findAllStudents);
 teacherRouter.delete("/delete-student/:id", teacherController.studentDelete);
 teacherRouter.put("/edit-student/:id", teacherController.editStudent);
 teacherRouter.get("/get-student-class/:teacherId", teacherController.getStudentsAndClasses)
+teacherRouter.get("/get-student-by-taskid", teacherController.getStudentByTaskId)
+teacherRouter.get("/get-student-answer/:taskId/:studentId", teacherController.getSubmissionAnswers)
 
 export {teacherRouter}

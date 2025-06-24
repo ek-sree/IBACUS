@@ -19,6 +19,7 @@ import { sortOptions } from "../../constants/data";
 import DeleteConfirmationModal from "../../common/modal/DeleteConformationModal";
 import useDeleteTask from "../../services/TaskManagment/useDeleteTask";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface UploadedFile {
   id?: string;          
@@ -63,6 +64,8 @@ const methods = useForm();
 
   const { tasks, totalCount, loading, error } = useFetchTask(currentPage,itemsPerPage,debouncedSearchTerm,sort,teacherId);
   const {deleteTask,error:isDeleteError,loading:isDeleteLoading} = useDeleteTask()
+
+  const navigate = useNavigate();
   
   useEffect(()=>{
     setTaskLists(tasks)
@@ -178,7 +181,7 @@ const handleDelete=async(id:string)=>{
                     <td className="px-6 py-4 text-gray-600">{formatDate(task.assignedDate)}</td>
                     <td className="px-6 py-4 text-gray-600">{formatDate(task.dueDate)}</td>
                     <td className="px-6 py-4 flex justify-center space-x-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => navigate(`/teacher/view-task/${task.id}` ,{ state: { task } })} className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg"><Eye className="w-4 h-4" /></button>
                       <button className="p-2 text-green-600 hover:bg-green-100 rounded-lg"><Edit2 className="w-4 h-4" /></button>
                       <button onClick={()=>{setShowDeleteModal(true); setSelecteTaskId(task.id)}} className="p-2 text-red-600 hover:bg-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                     </td>

@@ -82,6 +82,7 @@ model TaskSubmission {
   status      Boolean   @default(false) 
   grade       Int?
   createdAt   DateTime @default(now())
+   @@unique([taskId, studentId])
 }
 
 

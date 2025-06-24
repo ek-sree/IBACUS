@@ -6,6 +6,9 @@ export const TEACHER_ENDPOINTS = {
   DELETE_STUDENT: `${BASE_URL}/teacher/delete-student`,
   EDIT_STUDENT: `${BASE_URL}/teacher/edit-student`,
   GET_STUDENT_CLASS: `${BASE_URL}/teacher/get-student-class`,
+  GET_STUDENT_BY_TASKID: `${BASE_URL}/teacher/get-student-by-taskid`,
+  GET_STUDENT_ANSWER: `${BASE_URL}/teacher/get-student-answer`,
+
 
 
   ADD_TASK: `${BASE_URL}/task/add-task`,

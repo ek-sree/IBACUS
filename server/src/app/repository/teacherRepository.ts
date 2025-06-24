@@ -148,4 +148,61 @@ export class TeacherRepository {
       return null;
     }
   }
+
+  async findStudentsByTaskId(taskId:string,page:number,limit:number,search?:string){
+    try {
+      const skip = (page-1)*limit;
+      const taskWithStudent = await prisma.task.findUnique({where:{id:taskId},select:{students:true}})
+      if(!taskWithStudent){
+        return null;
+      }
+      const submissions = await prisma.taskSubmission.findMany({where:{taskId},select:{studentId:true,createdAt:true}})
+      const submittedIds = Object.fromEntries(submissions.map((sub)=>[sub.studentId,sub.createdAt]))
+
+       let filteredStudents = taskWithStudent.students;
+
+    if (search && search.trim() !== "") {
+      
+      const lowerSearch = search.toLowerCase();
+      filteredStudents = filteredStudents.filter(
+        (student) =>
+          student.name.toLowerCase().includes(lowerSearch) ||
+          student.email.toLowerCase().includes(lowerSearch)
+      );
+    }
+      const data = filteredStudents.map((student)=>({
+        id:student.id,
+        name:student.name,
+        email:student.email,
+        class:student.class,
+        status:submittedIds[student.id] ? 'Submitted' : 'Pending',
+        submissionDate:submittedIds[student.id] || null,
+      })).slice(skip,skip+ Number(limit));
+
+      if(!filteredStudents){
+        return null;
+      }
+      return {data,totalCount: filteredStudents.length};
+
+      
+    } catch (error) {
+      console.log("Error occured while finding students by task ID in repository",error);
+      return null;
+      
+    }
+  }
+
+  async findSubmittedAnswer(taskId:string,studentId:string){
+    try {
+      const answer = await prisma.taskSubmission.findUnique({
+  where: { taskId_studentId: { taskId, studentId } },
+});
+
+      console.log("ANSWERSSS",answer);
+      return answer || null;
+    } catch (error) {
+      console.log("Error occured while finding submitted answers",error)
+      return null;
+    }
+  }
 }

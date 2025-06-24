@@ -14,19 +14,50 @@ interface IGetTasks{
 
 export class TaskRepository {
 
-    async createTask(data:any){
-        try {
-            const task = await prisma.task.create({data})
+    async createTask(data: any) {
+  try {
+    // Step 1: Fetch all students for each class in `data.classrooms`
+    const classes = data.classrooms as string[];
+    let studentsToConnect: { id: string }[] = [];
 
-            if(!task){
-                return null
-            }
-            return task;
-        } catch (error) {
-            console.log("Error occured while adding task in repository",error);
-            return null
-        }
+    if (classes && classes.length > 0) {
+      const studentsOfClasses = await prisma.student.findMany({
+        where: { class: { in: classes } },
+        select: { id: true } // just get id
+      });
+      studentsToConnect = studentsOfClasses.map((s) => ({ id: s.id }));
     }
+
+    // Step 2: Create the task with connected students
+    const task = await prisma.task.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        subject: data.subject,
+        assignedDate: data.assignedDate,
+        dueDate: data.dueDate,
+        text: data.text,
+        maxMarks: data.maxMarks,
+        attachments: data.attachments,
+        images: data.images,
+        teacherId: data.teacherId,
+        classrooms: data.classrooms,
+        students: {
+          connect: studentsToConnect,
+        }
+      }
+    });
+
+    return task;
+  } catch (error) {
+    console.log(
+      "Error occurred while adding task in repository",
+      error
+    );
+    return null;
+  }
+}
+
 
     async findAllTasks(data:IGetTasks) {
   try {
@@ -140,9 +171,46 @@ if(!tasks || !totalCount){
 async deleteTaskById(id:string){
     try {
         const foundTask = await prisma.task.findUnique({ where: { id } });
+        console.log("DELETE",id);
+        
         if(!foundTask){
             return null
         }
+          const submissions = await prisma.taskSubmission.findMany({
+  where: { taskId: id },
+  select: { attachments: true, images: true }
+})
+
+// 3️⃣ Gather all file URLs from submissions
+const submissionFiles: string[] = submissions.flatMap((submission) => {
+  const attachments = Array.isArray(submission.attachments) ? submission.attachments : []
+  const images = Array.isArray(submission.images) ? submission.images : []
+  return [
+    ...attachments.map((file: any) => file.url || file),
+    ...images.map((file: any) => file.url || file),
+  ]
+}).filter((url): url is string => typeof url === "string")
+
+// 4️⃣ Delete all submission files from Cloudinary
+for (const fileUrl of submissionFiles) {
+  try {
+    await deleteImageFromCloudinary(fileUrl)
+  } catch (error) {
+    console.error(`Error deleting file from Cloudinary: ${fileUrl}`, error)
+  }
+}
+
+// 5️⃣ Delete all submission
+await prisma.taskSubmission.deleteMany({ where: { taskId: id } })
+    
+    await prisma.task.update({
+      where: { id },
+      data: {
+        students: { set: [] } 
+      }
+    })
+    
+        console.log("DAS",foundTask);
         
           const attachments = (foundTask.attachments as any) || [];
     const images = (foundTask.images as any) || [];
