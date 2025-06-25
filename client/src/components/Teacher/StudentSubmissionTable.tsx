@@ -9,10 +9,12 @@ const StudentSubmissionTable = ({ taskId,submissions, totalCount, loading, error
   
     const totalPages = Math.ceil(totalCount / limit);
   const startIndex = (page - 1) * limit;
-console.log("STUDENTCOMID",taskId);
+console.log("STUDENTCOMID",submissions);
 
   const handleNavigate=(submission)=>{
-    navigate(`/teacher/view-answers/${submissions[startIndex].id}`,{state:{taskId,submittedStudent: submission }})
+    console.log("SUBMISSION ID", submission.id);
+    
+    navigate(`/teacher/view-answers/${submission.id}`,{state:{taskId,submittedStudent: submission }})
     
   }
 

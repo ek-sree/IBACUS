@@ -54,19 +54,7 @@ try {
 }
   }
 
-  getTasksByClassroomAndStudent = async(req:Request,res:Response)=>{
-    try {
-      const classroom = req.query.classroom as string
-      const studentId = req.query.studentId as string
-      
-      const result=await this.taskUseCase.getTasksByClassroomAndStudent(studentId,classroom)  
-
-      res.status(result.status).json({message:result.message,pendingTasks:result.pendingTasks,completedTasks:result.completedTasks})
-    } catch (error) {
-      console.log("Error occured while fetching task by classroom in controller",error)
-      res.status(StatusCode.InternalServerError).json({message:"Internal Server Error"})
-    }
-  }
+ 
 
  
 

@@ -1,10 +1,20 @@
 import { prisma } from "../../config/prisma.js";
 import { Role } from "../../generated/prisma/index.js";
+import { StatusCode } from "../../interface/statusCode.js";
 
 interface StudentsData{
     email:string,
     name:string,
     class:string,
+}
+
+interface DashboardData {
+  studentCount: number;
+  taskCount: number;
+  totalSubmissions:number;
+  averageGradePercentage: number;
+  weeklySubmissions: number[];
+  topStudents: { name: string; email: string; totalMarks: number }[];
 }
 
 export class TeacherRepository {
@@ -198,11 +208,132 @@ export class TeacherRepository {
   where: { taskId_studentId: { taskId, studentId } },
 });
 
-      console.log("ANSWERSSS",answer);
       return answer || null;
     } catch (error) {
       console.log("Error occured while finding submitted answers",error)
       return null;
     }
   }
+
+
+  async addSubmissionGrade(id:string,grade:number){
+    try {
+      
+      const updatedSubmission = await prisma.taskSubmission.update({
+        where: { id },
+        data: { grade },
+      });
+      
+      return updatedSubmission || null;
+    } catch (error) {
+      console.log("Error occured while adding submission grade",error);
+      return null;
+    }
+  }
+
+
+  async findDashboardDetails(teacherId:string):Promise<DashboardData | null> {
+   try {
+    // 1️⃣ Fetch student count
+    const studentCount = await prisma.student.count({
+      where: { teacherId, status: true },
+    });
+
+    // 2️⃣ Fetch task count
+    const taskCount = await prisma.task.count({
+      where: { teacherId },
+    });
+
+    // 3️⃣ Fetch completed submissions count
+    const completedSubmissions = await prisma.taskSubmission.count({
+      where: { teacherId, status: true },
+    });
+
+    // 4️⃣ Fetch all graded submissions for average grade
+    const gradedSubmissionsWithTask = await prisma.taskSubmission.findMany({
+  where: { teacherId, grade: { gte: 0 } },
+  select: {
+    grade: true,
+    task: { select: { maxMarks: true } },
+  },
+});
+
+// Compute average percentage
+const averageGradePercentage = gradedSubmissionsWithTask.length
+  ? gradedSubmissionsWithTask.reduce((sum, sub) => {
+      const grade = sub.grade ?? 0; // Default null grades to 0
+      const pct = (grade / sub.task.maxMarks) * 100;
+      return sum + pct;
+    }, 0) / gradedSubmissionsWithTask.length
+  : 0;
+    // 5️⃣ Fetch weekly submission trend
+    const fourWeeksAgo = new Date();
+    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+
+    const submissionsByDate = await prisma.taskSubmission.findMany({
+      where: {
+        teacherId,
+        createdAt: { gte: fourWeeksAgo },
+      },
+      select: { createdAt: true },
+    });
+
+    // Initialize weekly buckets
+    const weeklySubmissions = Array(4).fill(0);
+    submissionsByDate.forEach((submission) => {
+      const weekIndex = Math.floor(
+        (new Date().getTime() - new Date(submission.createdAt).getTime()) /
+        (7 * 24 * 60 * 60 * 1000)
+      );
+      if (weekIndex >= 0 && weekIndex < 4) {
+        weeklySubmissions[3 - weekIndex] += 1;
+      }
+    });
+
+    // 6️⃣ Fetch top students by sum of marks
+    const topStudentsByMarks = await prisma.taskSubmission.groupBy({
+      by: ['studentId'],
+      where: {
+        teacherId,
+        marks: { gte: 0 },
+      },
+      _sum: { grade: true },
+      orderBy: {
+        _sum: { marks: 'desc' },
+      },
+      take: 5,
+    });
+
+    // Fetch student info
+    const topStudents = await Promise.all(
+      topStudentsByMarks.map(async (s) => {
+        const student = await prisma.student.findUnique({
+          where: { id: s.studentId },
+          select: { name: true, email: true },
+        });
+
+        return {
+          name: student?.name || 'Unknown',
+          email: student?.email || '',
+          totalMarks: s._sum.grade || 0, 
+        };
+      })
+    );
+
+    // ✅ Assemble dashboard data
+    const data: DashboardData = {
+      studentCount,
+      taskCount,
+      totalSubmissions: completedSubmissions,
+      averageGradePercentage,
+      weeklySubmissions,
+      topStudents,
+    };
+
+    return data;
+  } catch (error) {
+    console.error('Error occurred while fetching teacher dashboard data:', error);
+    return null;
+  }
+}
 }

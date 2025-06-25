@@ -84,6 +84,3 @@ model TaskSubmission {
   createdAt   DateTime @default(now())
    @@unique([taskId, studentId])
 }
-
-
-

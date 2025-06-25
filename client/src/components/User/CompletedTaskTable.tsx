@@ -6,7 +6,6 @@ import {
   Calendar,
   BookOpen,
   Clock,
-  CheckSquare,
   CheckCircle,
   Loader,
 } from "lucide-react";
@@ -40,17 +39,16 @@ const CompletedTaskTable: React.FC<CompletedTaskTableProps> = ({
   setCurrentPage,
   itemsPerPage,
   error,
-  loading
+  loading,
+  totalCount
 }) => {
   const navigate = useNavigate();
 
   // Filter only completed tasks
 
   // Pagination
-  const totalPages = Math.ceil(tasks.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedTasks = tasks.slice(startIndex, startIndex + itemsPerPage);
-console.log("eeee",paginatedTasks);
+ const totalPages = Math.ceil(totalCount / itemsPerPage);
+ const startIndex = (currentPage - 1) * itemsPerPage;
 
   return (
     <div className="space-y-6">
@@ -99,7 +97,7 @@ console.log("eeee",paginatedTasks);
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {paginatedTasks.map((task) => (
+              {tasks.map((task) => (
                 <tr
                   key={task.id}
                   className="hover:bg-gradient-to-r hover:from-green-50/50 hover:to-emerald-50/50 transition-all duration-200 group"
@@ -163,7 +161,7 @@ console.log("eeee",paginatedTasks);
             </tbody>
           </table>
 
-          {paginatedTasks.length === 0 && !error && !loading &&(
+          {tasks.length === 0 && !error && !loading &&(
             <div className="text-center py-16">
               <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-12 h-12 text-green-400" />
@@ -229,7 +227,7 @@ console.log("eeee",paginatedTasks);
             </div>
 
             <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
               className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
             >

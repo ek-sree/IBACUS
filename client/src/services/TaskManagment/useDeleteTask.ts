@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Axios from "../../api/axios/axios";
-import { TEACHER_ENDPOINTS } from "../../api/endpoints/teacherEndpoints";
+import { TASKENDPOINTS } from "../../api/endpoints/taskEndpoints";
 
 const useDeleteTask = () => {
     const [error,setError] = useState<string>("")
@@ -10,7 +10,7 @@ const useDeleteTask = () => {
         setLoading(true)
             setError("")
         try {
-            const response = await Axios.delete(`${TEACHER_ENDPOINTS.DELETE_TASK}/${id}`)
+            const response = await Axios.delete(`${TASKENDPOINTS.DELETE_TASK}/${id}`)
             if(response.status==204){
             return true;
         }

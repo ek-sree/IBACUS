@@ -17,15 +17,15 @@ interface StudentAndClassResult {
 
 
 export class TeacherUseCase {
-  private repository: TeacherRepository;
+  private teacherRepo: TeacherRepository;
 
   constructor() {
-    this.repository = new TeacherRepository();
+    this.teacherRepo = new TeacherRepository();
   }
 
   async addStudents(data: StudentsData[], teacherId: string):Promise<{status:number,message:string,data?:StudentsData[]}> {
     try {      
-        const existingStudents = await this.repository.findAllStudents();
+        const existingStudents = await this.teacherRepo.findAllStudents();
 
     const existingEmails = new Set(existingStudents.map((s) => s.email));
 
@@ -35,7 +35,7 @@ export class TeacherUseCase {
       return {status:StatusCode.BadRequest, message: `Duplicate Email: ${duplicate.email}`}
     }
     const role = "student";
-    const result = await this.repository.createStudent(data, teacherId, role);
+    const result = await this.teacherRepo.createStudent(data, teacherId, role);
     if(!result){
       return {status:StatusCode.BadRequest, message:"Unable to create students"};
     }
@@ -48,8 +48,8 @@ export class TeacherUseCase {
 
   async fetchAllStudents(teacherId:string,pageNumber:number,limit:number,className?:string,search?:string): Promise<{status: number;message: string;data?: StudentsData[];totalCount?:number}> {
     try {
-      const result = await this.repository.findAllStudents(teacherId,pageNumber,limit,className,search);
-      const total = await this.repository.countStudents(teacherId,className,search)
+      const result = await this.teacherRepo.findAllStudents(teacherId,pageNumber,limit,className,search);
+      const total = await this.teacherRepo.countStudents(teacherId,className,search)
       
       if(!result){
         return {status :StatusCode.NotFound,message:"No students found"}
@@ -63,7 +63,7 @@ export class TeacherUseCase {
 
   async deleteStudent(id:string):Promise<{status:number,message:string}>{
     try {
-      const result = await this.repository.deleteStudent(id);
+      const result = await this.teacherRepo.deleteStudent(id);
       if(!result){
         return {status:StatusCode.InternalServerError,message:`Cant delete this student error occured`}
       }
@@ -80,7 +80,7 @@ export class TeacherUseCase {
       if(!emailValidate || !name.trim() || !className.trim() || !studentId.trim()){
         return {status:StatusCode.BadRequest,message:"Invalid input"}
       }
-      const result = await this.repository.updateStudent(studentId,email,name,className);
+      const result = await this.teacherRepo.updateStudent(studentId,email,name,className);
       if(!result){
         return {status:StatusCode.InternalServerError,message:"Unable to update student"};
       }
@@ -93,7 +93,7 @@ export class TeacherUseCase {
 
   async getStudentsAndClass(teacherId?:string):Promise<{status:number,message:string,data?:StudentAndClassResult}>{
     try {
-      const result = await this.repository.findStudentAndClass(teacherId);
+      const result = await this.teacherRepo.findStudentAndClass(teacherId);
       if(!result){
         return {status:StatusCode.InternalServerError,message:"Unable to get students and classes"};
       }
@@ -109,7 +109,7 @@ export class TeacherUseCase {
       if(!taksId){
         return {status:StatusCode.BadRequest,message:"Invalid Task Id"}
       }
-      const result = await this.repository.findStudentsByTaskId(taksId,page,limit,search);
+      const result = await this.teacherRepo.findStudentsByTaskId(taksId,page,limit,search);
       if(!result){
         return {status:StatusCode.InternalServerError,message:"Unable to get students by taskId"};
       }
@@ -122,17 +122,43 @@ export class TeacherUseCase {
 
   async getSubmissionAnswer(taskId:string,studendId:string):Promise<{status:number,message:string,data?:any}>{
     try {
-      console.log("Getting Submission Answer idss",taskId,studendId);
-      console.log("Getting Submission Answer idss",typeof(taskId),typeof(studendId));
       
-      if(!taskId.trim() || typeof(taskId)!=="string" || !studendId.trim() || typeof(studendId)!=="string"){
+      if(!taskId.trim() || !studendId.trim() ){
         return {status:StatusCode.BadRequest,message:"Invalid Input"};
       }
-      const result = await this.repository.findSubmittedAnswer(taskId,studendId);
+      const result = await this.teacherRepo.findSubmittedAnswer(taskId,studendId);
       return {status:StatusCode.OK,message:"Success",data:result};
     } catch (error) {
       console.log("Error getting submission answer in teacherusecase",error);
       return {status:StatusCode.InternalServerError,message:"Internal server error"};
+    }
+  }
+
+  async addSubmissionGrade(id:string,grade:number):Promise<{status:number,message:string}>{
+    try {
+      const result = await this.teacherRepo.addSubmissionGrade(id,grade);
+      if(!result){
+        return {status:StatusCode.InternalServerError,message:"Unable to add grade"};
+      }
+      return {status:StatusCode.NoContent,message:"Added Grade"};
+    } catch (error) {
+      console.log("Error adding grade in teacherusecase",error);
+      return{status:StatusCode.InternalServerError,message:"Internal server error"}
+    }
+  }
+
+  async getDashboardInfo(teacherId:string):Promise<{status:number, message:string,data?:any}>{
+    try {
+      const result = await this.teacherRepo.findDashboardDetails(teacherId)
+      console.log("ds",result);
+      
+      if(!result){
+        return{status:StatusCode.BadRequest, message:"No data found"}
+      }
+      return{status:StatusCode.OK,message:"Data found success",data:result}
+    } catch (error) {
+      console.log("Error occured while fetching teacher dashboard in useCase",error);
+      return {status:StatusCode.InternalServerError,message:"Internal Server Error"}
     }
   }
 }

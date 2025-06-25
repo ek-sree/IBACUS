@@ -39,7 +39,8 @@ const OngoingTaskTable: React.FC<NotCompletedTaskProps> = ({
   setCurrentPage,
   itemsPerPage,
   error,
-  loading
+  loading,
+totalCount
 }) => {
   const navigate = useNavigate();
 
@@ -85,9 +86,9 @@ const OngoingTaskTable: React.FC<NotCompletedTaskProps> = ({
   };
 
   // Pagination
-  const totalPages = Math.ceil(notCompletedTasks.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedTasks = notCompletedTasks.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+ const startIndex = (currentPage - 1) * itemsPerPage;
+
 
   return (
     <div className="space-y-6">
@@ -133,7 +134,7 @@ const OngoingTaskTable: React.FC<NotCompletedTaskProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {paginatedTasks.map((task) => {
+              {tasks.map((task) => {
                 const dueStatus = getDueStatus(task.dueDate);
                 const StatusIcon = dueStatus.icon;
 
@@ -194,7 +195,7 @@ const OngoingTaskTable: React.FC<NotCompletedTaskProps> = ({
             </tbody>
           </table>
 
-          {paginatedTasks.length === 0 && !error && !loading &&(
+          {tasks.length === 0 && !error && !loading &&(
             <div className="text-center py-16">
               <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckSquare className="w-12 h-12 text-orange-400" />

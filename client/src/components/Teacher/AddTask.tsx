@@ -12,7 +12,7 @@ import {
 import InputField from "../../common/ui/InputField";
 import DateInputField from "../../common/ui/DateInputField";
 import ImageInputField from "../../common/ui/ImageInputField";
-import useFetchStudentAndClass from "../../services/studentManagment/useFetchStudentAndClass";
+import useFetchStudentAndClass from "../../services/TeacherManagment/useFetchStudentAndClass";
 import DropdownField from "../../common/ui/DropDownField";
 import useAddTask from "../../services/TaskManagment/useAddTask";
 import { useSelector } from "react-redux";

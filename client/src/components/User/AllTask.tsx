@@ -3,9 +3,7 @@ import {
   Search,
   CheckSquare,
   SortAsc,
-  BookOpen,
   Clock,
-  Calendar,
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
@@ -14,8 +12,7 @@ import type { RootState } from "../../state/redux/store/store";
 import { countDueSoon } from "../../utils/calculateDueSoon";
 import CompletedTaskTable from "./CompletedTaskTable";
 import OngoingTaskTable from "./OngoingTaskTable";
-import useFetchStudentTaskBy from "../../services/studentManagments/useFetchStudentTask";
-import { filterAndSortTasks } from "../../utils/filter-sort";
+import useFetchTaskByStudent from "../../services/StudentManagment/useFetchStudentTask";
 
 const sortOptions = [
   { value: "assignedDateAsc", label: "Assign Date asc - desc" },
@@ -27,20 +24,17 @@ const sortOptions = [
 const AllTask = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(2);
+  const [itemsPerPage] = useState(1);
   const [sortBy, setSortBy] = useState("");
   const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
 
   const studentId = useSelector((state: RootState) => state.studentAuth?.id) || undefined;
-  const className = useSelector((state: RootState) => state.studentAuth?.class) || undefined;
 
-  const { completedTasks,pendingTasks, error: isError, loading: isLoading } = useFetchStudentTaskBy(studentId!,className!);
-
-  const totalCount = pendingTasks.length + completedTasks.length
+  const { tasks,totalCount,completedCount,dueSoonCount,pendingCount,totalTaskCount,error: isError, loading: isLoading } = useFetchTaskByStudent(studentId!,searchTerm,sortBy,activeTab,currentPage,itemsPerPage);
 
 
-  const filteredPendingTasks = filterAndSortTasks(pendingTasks,searchTerm, sortBy);
-const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sortBy);
+
+ 
 
 
   // Reset current page when switching tabs
@@ -70,7 +64,7 @@ const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sor
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Tasks</p>
-                <p className="text-3xl font-bold text-gray-900">{totalCount}</p>
+                <p className="text-3xl font-bold text-gray-900">{totalTaskCount}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                 <CheckSquare className="w-6 h-6 text-blue-600" />
@@ -83,7 +77,7 @@ const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sor
               <div>
                 <p className="text-sm font-medium text-gray-600">Pending Tasks</p>
                 <p className="text-3xl font-bold text-orange-600">
-                  {pendingTasks.length}
+                  {pendingCount}
                 </p>
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
@@ -97,7 +91,7 @@ const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sor
               <div>
                 <p className="text-sm font-medium text-gray-600">Completed Tasks</p>
                 <p className="text-3xl font-bold text-green-600">
-                  {completedTasks.length}
+                  {completedCount}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
@@ -111,7 +105,7 @@ const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sor
               <div>
                 <p className="text-sm font-medium text-gray-600">Due Soon</p>
                 <p className="text-3xl font-bold text-red-600">
-                  {countDueSoon(pendingTasks)}
+                  {dueSoonCount}
                 </p>
               </div>
               <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -130,7 +124,7 @@ const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sor
                 type="text"
                 placeholder="Search tasks by title or subject..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {setSearchTerm(e.target.value);setCurrentPage(1)}}
                 className="w-full pl-12 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
               />
             </div>
@@ -172,7 +166,7 @@ const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sor
                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                   activeTab === 'pending' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-600'
                 }`}>
-                  {pendingTasks.length}
+                  {pendingCount}
                 </span>
               </button>
               <button
@@ -188,7 +182,7 @@ const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sor
                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                   activeTab === 'completed' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-600'
                 }`}>
-                  {completedTasks.length}
+                  {completedCount}
                 </span>
               </button>
             </div>
@@ -198,21 +192,23 @@ const filteredCompletedTasks = filterAndSortTasks(completedTasks,searchTerm, sor
         {/* Task Tables */}
         {activeTab === 'pending' ? (
           <OngoingTaskTable
-            tasks={filteredPendingTasks}
+            tasks={tasks}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             itemsPerPage={itemsPerPage}
             loading={isLoading}
             error={isError}
+            totalCount={totalCount}
           />
         ) : (
           <CompletedTaskTable
-            tasks={filteredCompletedTasks}
+            tasks={tasks}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             itemsPerPage={itemsPerPage}
             error={isError}
             loading={isLoading}
+            totalCount={totalCount}
           />
         )}
       </div>

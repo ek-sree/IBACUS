@@ -14,21 +14,32 @@ interface IGetTasks{
 
 export class TaskRepository {
 
-    async createTask(data: any) {
+ async createTask(data: any) {
   try {
-    // Step 1: Fetch all students for each class in `data.classrooms`
-    const classes = data.classrooms as string[];
+    let classes: string[] = Array.isArray(data.classrooms) ? data.classrooms : [];
+    let studentIds: string[] = Array.isArray(data.students) ? data.students : [];
+
+    // Gather students of the classes
     let studentsToConnect: { id: string }[] = [];
 
-    if (classes && classes.length > 0) {
-      const studentsOfClasses = await prisma.student.findMany({
+    if (classes.length > 0) {
+      const classStudents = await prisma.student.findMany({
         where: { class: { in: classes } },
-        select: { id: true } // just get id
+        select: { id: true }
       });
-      studentsToConnect = studentsOfClasses.map((s) => ({ id: s.id }));
+      studentsToConnect.push(...classStudents.map((s) => ({ id: s.id })));
     }
 
-    // Step 2: Create the task with connected students
+    // Add explicit students too
+    if (studentIds.length > 0) {
+      studentsToConnect.push(...studentIds.map((id) => ({ id })));
+    }
+
+    // Remove duplicates
+    studentsToConnect = Array.from(
+      new Map(studentsToConnect.map((s) => [s.id, s])).values()
+    );
+
     const task = await prisma.task.create({
       data: {
         title: data.title,
@@ -38,25 +49,25 @@ export class TaskRepository {
         dueDate: data.dueDate,
         text: data.text,
         maxMarks: data.maxMarks,
-        attachments: data.attachments,
-        images: data.images,
+        attachments: data.attachments || [],
+        images: data.images || [],
         teacherId: data.teacherId,
-        classrooms: data.classrooms,
-        students: {
-          connect: studentsToConnect,
-        }
-      }
+        classrooms: classes,
+        students: { connect: studentsToConnect },
+      },
     });
 
     return task;
   } catch (error) {
-    console.log(
-      "Error occurred while adding task in repository",
+    console.error(
+      "Error occurred while adding task in repository:",
       error
     );
     return null;
   }
 }
+
+
 
 
     async findAllTasks(data:IGetTasks) {
@@ -124,50 +135,6 @@ if(!tasks || !totalCount){
 }
 
 
-
- async findTasksByClassroomAndStudent(studentId: string, classroom: string) {
-  try {
-    // Fetch all tasks assigned to the student or classroom
-    const studentTasks = await prisma.task.findMany({
-      where: { students: { some: { id: studentId } } },
-      include: { TaskSubmission: { where: { studentId } } },
-    });
-
-    const allClassroomTasks = await prisma.task.findMany({
-      include: { TaskSubmission: { where: { studentId } } },
-    });
-
-    const classroomTasks = allClassroomTasks.filter((task) => {
-      const clsArray = Array.isArray(task.classrooms) ? task.classrooms : [];
-      return clsArray.includes(classroom);
-    });
-
-    // Merge & remove duplicates
-    const mergedTasks = [...studentTasks, ...classroomTasks];
-    const uniqueTasks = Array.from(
-      new Map(mergedTasks.map((task) => [task.id, task])).values()
-    );
-
-    // Split into pending & completed
-    const pendingTasks = uniqueTasks.filter((task) => {
-      const submission = task.TaskSubmission[0];
-      return !submission || submission.status === false;
-    });
-
-    const completedTasks = uniqueTasks.filter((task) => {
-      const submission = task.TaskSubmission[0];
-      return submission && submission.status === true;
-    });
-
-    return { pendingTasks, completedTasks };
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-}
-
-
-
 async deleteTaskById(id:string){
     try {
         const foundTask = await prisma.task.findUnique({ where: { id } });
@@ -208,10 +175,7 @@ await prisma.taskSubmission.deleteMany({ where: { taskId: id } })
       data: {
         students: { set: [] } 
       }
-    })
-    
-        console.log("DAS",foundTask);
-        
+    })        
           const attachments = (foundTask.attachments as any) || [];
     const images = (foundTask.images as any) || [];
 

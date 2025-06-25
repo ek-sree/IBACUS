@@ -6,7 +6,7 @@ import type { RootState } from "../../state/redux/store/store";
 import { checkDuplicateEmails } from "../../utils/checkDuplicateEmails";
 import { toast } from 'sonner';
 import InputField from "../../common/ui/InputField";
-import useAddStudent from "../../services/studentManagment/useAddStudent";
+import useAddStudent from "../../services/TeacherManagment/useAddStudent";
 
 const AddStudents = ({ isOpen, onClose,onSuccess }) => {
   const [activeTab, setActiveTab] = useState('csv');

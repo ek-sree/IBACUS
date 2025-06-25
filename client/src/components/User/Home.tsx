@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   BookOpen, 
   CheckCircle, 
@@ -9,8 +8,20 @@ import {
   Award,
   Target
 } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../state/redux/store/store';
+import useFetchStudentDashboard from '../../services/StudentManagment/useFetchStudentDashboard';
 
 const Home = () => {
+
+
+  
+  const studentName = useSelector((state:RootState)=>state.studentAuth.name)
+  const studentId = useSelector((state:RootState)=>state.studentAuth.id)
+  const {data,error,loading} = useFetchStudentDashboard(studentId!)
+
+  console.log("Data",data);
+  
   // Sample data
   const tasks = [
     { id: 1, title: 'Mathematics Assignment', subject: 'Math', dueDate: '2025-06-25', status: 'pending', points: 20 },
@@ -27,7 +38,7 @@ const Home = () => {
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white mt-1">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, Alex!</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, {studentName}!</h1>
         <p className="text-blue-100">Ready to conquer your tasks today?</p>
       </div>
 

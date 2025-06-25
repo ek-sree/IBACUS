@@ -19,7 +19,7 @@ import { formatDate } from "../../utils/formateDate";
 import { useState } from "react";
 import PdfViewerModal from "../../common/modal/PdfViewerModal";
 import { handleDownload } from "../../utils/downloadDatas";
-import useAddTaskAnswer from "../../services/studentManagments/useAddTaskAnswer";
+import useAddTaskAnswer from "../../services/StudentManagment/useAddTaskAnswer";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../state/redux/store/store";
 import { toast } from "sonner";
@@ -54,7 +54,6 @@ const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefi
     try {
        const { attachments, images, ...rest } = data;
     const formData = new FormData();
-console.log("LOF",data);
 
     formData.append('text', rest.answer);
     formData.append('marks', task.maxMarks);

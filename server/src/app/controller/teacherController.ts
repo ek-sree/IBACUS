@@ -99,13 +99,42 @@ createStudents = async(req:Request, res:Response)=>{
         console.log("LOF");
         
         try {
-            const taskId = req.params.taskId;
-            const studentId = req.params.studentId;
+            const taskId = req.params.taskId as string;
+            const studentId = req.params.studentId as string;
             const response = await this.teacherUseCase.getSubmissionAnswer(taskId,studentId);
             res.status(response.status).json({message:response.message,data:response.data});
         } catch (error) {
             console.log("Error occured while fetching submission answer from controller",error)
             res.status(StatusCode.InternalServerError).json({message:"Internal Server error"})
+        }
+    }
+
+
+    addSubmissionGrade = async(req:Request,res:Response)=>{
+        try {
+            
+            const id = req.params.id as string;
+            const grade = Number(req.body.grade);
+            
+            const result = await this.teacherUseCase.addSubmissionGrade(id,grade);
+            res.status(result.status).json({message:result.message})
+        }catch(error){
+            console.log("Error occured while adding submission grade from controller",error)
+            res.status(StatusCode.InternalServerError).json({message:"Internal Server error"})
+        }
+    }
+
+    getDashboardData = async(req:Request,res:Response)=>{
+        try {
+            const teacherId = req.params.teacherId as string;
+
+            const result = await this.teacherUseCase.getDashboardInfo(teacherId)
+            console.log("RESSSSSSSSS",result);
+            
+            res.status(result.status).json({message:result.message,data:result.data})
+        } catch (error) {
+            console.log("Error occured while fetching dashboard data from controller",error)
+            res.status(StatusCode.InternalServerError).json({messsage:"Internal server error"})
         }
     }
 

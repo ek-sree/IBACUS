@@ -44,6 +44,7 @@ export default class TaskUseCase{
        try {
          const pdfUrls: string[]=[];
         const imgUrls: string[]=[];
+console.log("DATA on USECASE",data);
 
         if(pdfs && pdfs.length>0){
             for(const file of pdfs){
@@ -59,23 +60,24 @@ export default class TaskUseCase{
             }
         }
 
-        const classrooms = JSON.parse(data.classrooms || "[]");
-        const studentIds = JSON.parse(data.students || "[]");
-        const studentConnect = studentIds.map((id: string) => ({ id }));
-        const result = await this.taskRepo.createTask({
-            title: data.title,
-            description: data.description,
-            subject: data.subject,
-            assignedDate: new Date(data.assignedDate),
-            dueDate: new Date(data.dueDate),
-            text: data.text,
-            maxMarks: Number(data.maxMarks),
-            classrooms,
-            students: { connect: studentConnect } ,
-            teacherId,
-            attachments: pdfUrls, 
-            images: imgUrls,    
-        });
+       const classrooms = JSON.parse(data.classrooms || "[]");
+const studentIds = JSON.parse(data.students || "[]");
+
+const result = await this.taskRepo.createTask({
+  title: data.title,
+  description: data.description,
+  subject: data.subject,
+  assignedDate: new Date(data.assignedDate),
+  dueDate: new Date(data.dueDate),
+  text: data.text,
+  maxMarks: Number(data.maxMarks),
+  classrooms,          // just pass raw classrooms array
+  students: studentIds, // just pass raw students array
+  teacherId,
+  attachments: pdfUrls,
+  images: imgUrls,
+});
+
 
         if(!result){
             return {status:StatusCode.InternalServerError,message:"Error while adding task"}
@@ -125,20 +127,7 @@ export default class TaskUseCase{
         }
     }
 
-    async getTasksByClassroomAndStudent(studentId:string,classroom:string):Promise<{status:number,message:string,pendingTasks?: ITask[],completedTasks?: ITask[];}>{
-        try {
-            
-            const tasks = await this.taskRepo.findTasksByClassroomAndStudent(studentId,classroom)
-            if(!tasks){
-                return {status:StatusCode.NotFound,message:"No tasks found"}
-            }
-            
-            return {status:StatusCode.OK,message:"Tasks fetched successfully",pendingTasks:tasks.pendingTasks,completedTasks:tasks.completedTasks};
-        } catch (error) {
-            console.log("error occured while fetching data using classroom in usecase",error);
-            return {status:StatusCode.InternalServerError,message:"Internal server error"}
-        }
-    }
+    
 
  
     async deleteTask(id:string):Promise<{status:number,message:string}>{

@@ -11,5 +11,7 @@ teacherRouter.put("/edit-student/:id", teacherController.editStudent);
 teacherRouter.get("/get-student-class/:teacherId", teacherController.getStudentsAndClasses)
 teacherRouter.get("/get-student-by-taskid", teacherController.getStudentByTaskId)
 teacherRouter.get("/get-student-answer/:taskId/:studentId", teacherController.getSubmissionAnswers)
+teacherRouter.get("/teacher-dashboard/:teacherId", teacherController.getDashboardData)
+teacherRouter.post("/add-submission-grade/:id", teacherController.addSubmissionGrade)
 
 export {teacherRouter}

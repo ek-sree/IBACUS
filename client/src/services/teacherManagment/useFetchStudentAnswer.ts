@@ -8,12 +8,10 @@ const useFetchStudentAnswer = (taskId: string,studentId:string) => {
     const [error, setError] = useState<string | null>(null);
 
     const fetchStudentAnswer= async()=>{
-        console.log("CALLIND api",taskId,studentId);
         
         setLoading(true);   
         try {
             const response = await Axios.get(`${TEACHER_ENDPOINTS.GET_STUDENT_ANSWER}/${taskId}/${studentId}`)
-            console.log("IVEDAAA",response);
             
             if(response.status===200){
                 setStudentAnswers(response.data.data)

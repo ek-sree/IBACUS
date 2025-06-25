@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Axios from "../../api/axios/axios";
 import { TEACHER_ENDPOINTS } from "../../api/endpoints/teacherEndpoints";
+import { TASKENDPOINTS } from "../../api/endpoints/taskEndpoints";
 
 interface UploadedFile {
   id?: string;          
@@ -34,10 +35,9 @@ const useAddTask = () =>{
 
     const addTask = async (data:FormData,teacherId:string)=>{
         try {
-            console.log("Adding task...",data,teacherId);
             
             setLoading(true);
-            const response = await Axios.post(`${TEACHER_ENDPOINTS.ADD_TASK}/${teacherId}`,data,{
+            const response = await Axios.post(`${TASKENDPOINTS.ADD_TASK}/${teacherId}`,data,{
                 headers:{
                     'Content-Type': `multipart/form-data`,
                   }

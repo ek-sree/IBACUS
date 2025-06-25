@@ -2,9 +2,9 @@ import { Edit, GraduationCap, Mail, Save, User } from 'lucide-react';
 import InputField from '../../common/ui/InputField';
 import { useForm } from 'react-hook-form';
 import React from 'react';
-import type { Student } from '../../services/studentManagment/useFetchStudents';
+import type { Student } from '../../services/TeacherManagment/useFetchStudents';
 import { toast } from 'sonner';
-import useEditStudent from '../../services/studentManagment/useEditStudent';
+import useEditStudent from '../../services/TeacherManagment/useEditStudent';
 
 interface EditStudentModalProps {
   isOpen: boolean;

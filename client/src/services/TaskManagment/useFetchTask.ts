@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Axios from "../../api/axios/axios";
 import { TEACHER_ENDPOINTS } from "../../api/endpoints/teacherEndpoints";
+import { TASKENDPOINTS } from "../../api/endpoints/taskEndpoints";
 
 interface UploadedFile {
   id?: string;          
@@ -38,7 +39,7 @@ const fetchTasks = async () => {
   
   setLoading(true);
   try {
-    const response = await Axios.get(TEACHER_ENDPOINTS.GET_TASKS, {
+    const response = await Axios.get(TASKENDPOINTS.GET_TASKS, {
       params: {
         page,
         limit,

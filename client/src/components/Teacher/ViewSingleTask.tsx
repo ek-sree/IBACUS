@@ -16,10 +16,10 @@ import { useState } from 'react';
 import ViewImageModal from '../../common/modal/ViewImageModal';
 import PdfViewerModal from '../../common/modal/PdfViewerModal';
 import StudentSubmissionTable from './StudentSubmissionTable';
-import useFetchStudentsByTaskId from '../../services/teacherManagment/useFetchStudentsByTaskId';
+import useFetchStudentsByTaskId from '../../services/TeacherManagment/useFetchStudentsByTaskId';
 import useDebounce from '../../hooks/useDebounce';
 
-const ViewTask = () => {
+const ViewSingleTask = () => {
 
      const [isPreviewOpen, setIsPreviewOpen] = useState(false);
       const [imagePreviewUrl, setImagePreviewUrl] = useState("");
@@ -283,4 +283,4 @@ const handlePdfPreview = (url) => {
   );
 };
 
-export default ViewTask;
+export default ViewSingleTask;

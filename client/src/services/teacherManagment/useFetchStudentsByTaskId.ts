@@ -3,7 +3,6 @@ import Axios from "../../api/axios/axios";
 import { TEACHER_ENDPOINTS } from "../../api/endpoints/teacherEndpoints";
 
 const useFetchStudentsByTaskId = (taskId: string,page:number=1,limit:number=5,searchTerm?:string) => {
-    console.log("searchAPIS",searchTerm);
     
   const [data,setData] = useState([])
   const [ totalCount, setTotalCount] = useState<number>(0);

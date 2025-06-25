@@ -4,11 +4,11 @@ import { useForm, FormProvider } from "react-hook-form";
 import DropdownField from "../../common/ui/DropDownField";
 import useDebounce from "../../hooks/useDebounce";
 import { toast } from "sonner";
-import useDeleteStudent from "../../services/studentManagment/useDeleteStudent";
+import useDeleteStudent from "../../services/TeacherManagment/useDeleteStudent";
 import DeleteConfirmationModal from "../../common/modal/DeleteConformationModal";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../state/redux/store/store";
-import useFetchStudents from "../../services/studentManagment/useFetchStudents";
+import useFetchStudents from "../../services/TeacherManagment/useFetchStudents";
 import EditStudentModal from "./EditStudentModal";
 
 interface FormValues {
