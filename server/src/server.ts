@@ -6,6 +6,9 @@ import { authRouter } from './app/routes/authRouter.js';
 import { teacherRouter } from './app/routes/teacherRouter.js';
 import { taskRouter } from './app/routes/taskRouter.js';
 import { studentRouter } from './app/routes/studentRouter.js';
+import { limiter } from './middleware/rateLimitter.js';
+import helmet from 'helmet';
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -27,6 +30,10 @@ app.use(cors({
   credentials: true,
    optionsSuccessStatus: 204 
 }));
+
+app.use(helmet());
+app.use(limiter);
+
 
 
 // Routes
