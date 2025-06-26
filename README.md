@@ -4,15 +4,21 @@ A full-stack web application that allows **Teachers** and **Students** to intera
 
 ---
 
+
+## 🚪 Login Routes
+
+- **👨‍🎓 Student Login** → [`/`](http://localhost:5173/signin)
+- **👨‍🏫 Teacher Login** → [`/teacher/signin`](http://localhost:5173/teacher/signin)
+
+> These are the main routes for logging into the portal. Teacher and Student will be automatically redirected to their dashboards after login.
+
+---
+
 ## 📚 Features
 
 ### 🧑‍🏫 Teacher Portal
 - Login using Google or Microsoft SSO.
 - View dashboard with **4 ApexCharts**:
-  - Total students
-  - Total tasks
-  - Completed tasks
-  - Weekly statistics
 - Add students:
   - Bulk upload via CSV
   - Manual entry
@@ -107,10 +113,11 @@ JWT_REFRESH_TOKEN_KEY=your_refresh_secret
 
 CLOUD_NAME=your_cloudinary_cloudname
 CLOUD_API_KEY=your_cloudinary_apikey
-CLOUD_API_SECRET=your_cloudinary_apisecret 
+CLOUD_API_SECRET=your_cloudinary_apisecret
+```
 
 
-### 📦 Backend `.env`
+### 📦 Frontend `.env`
 ```env
 VITE_API_URL=http://localhost:3000/api
 VITE_GOOGLE_CLIENT_ID=your_google_client_id
@@ -118,18 +125,50 @@ VITE_GOOGLE_SECRET=your_google_secret
 VITE_MS_CLIENT_ID=your_ms_client_id
 VITE_ACCESS_TOKEN_LIFETIME=15m
 VITE_APP_MODE=development
-
+```
 
 ##Run frontend
+```
 cd client
 npm install
 npm run dev
+```
 
 ##Run backend
+```
 cd server
 npm install
 npm run dev
+```
 
 🔁 For production build:
+```
 npm run build
 npm start
+```
+
+### 👨‍🏫 Teacher Route
+![Screenshot (432)](https://github.com/user-attachments/assets/ffa12029-a4a5-42b5-b2aa-d57b88737a42)
+![Screenshot (416)](https://github.com/user-attachments/assets/e08b0f93-3884-4ec5-bd5a-8610e3086120)
+![Screenshot (417)](https://github.com/user-attachments/assets/de1cfce1-a7f4-4532-9ee6-a72f5ced37ae)
+![Screenshot (418)](https://github.com/user-attachments/assets/998ce024-3800-4eea-9d4d-a479240ed5a9)
+![Screenshot (419)](https://github.com/user-attachments/assets/c6edb47b-9bf1-433a-a1ba-ae1ca4994624)
+![Screenshot (420)](https://github.com/user-attachments/assets/f407f5ef-0ed0-40c3-b1f6-d7cb30575c96)
+![Screenshot (421)](https://github.com/user-attachments/assets/cf83b56a-97d7-4fad-94e3-abf011499b5c)
+![Screenshot (422)](https://github.com/user-attachments/assets/fb7c9545-62e8-441b-808f-08f3c4953273)
+![Screenshot (423)](https://github.com/user-attachments/assets/b0730630-60cf-4104-b6ae-5692b6f6ce26)
+![Screenshot (424)](https://github.com/user-attachments/assets/1ecbf38b-c948-4012-88f8-22a9e71f2c67)
+![Screenshot (425)](https://github.com/user-attachments/assets/c1fb7e32-f5f5-4497-9330-aea67d68b96c)
+![Screenshot (427)](https://github.com/user-attachments/assets/ad2107fb-176d-45af-b28d-6c9842c092d4)
+![Screenshot (428)](https://github.com/user-attachments/assets/d3854a55-4b14-4cfc-aa4f-5dd02c507f23)
+![Screenshot (429)](https://github.com/user-attachments/assets/7947a5e6-860a-4e15-a2c7-7be5e5034582)
+![Screenshot (430)](https://github.com/user-attachments/assets/a04da084-1ee3-4147-afab-7b39b6af0387)
+![Screenshot (431)](https://github.com/user-attachments/assets/b81a4eb1-999e-4ae5-b9bb-2bf8d54d3131)
+
+### 👨‍🏫 Student Route
+![Screenshot (433)](https://github.com/user-attachments/assets/a51164ee-f493-4e06-a103-05c5c6c5257a)
+![Screenshot (434)](https://github.com/user-attachments/assets/87bd3afd-3f15-4282-ba84-fed76941c6c3)
+![Screenshot (435)](https://github.com/user-attachments/assets/c39092e5-6001-49d6-983a-e59cedc7eb0c)
+![Screenshot (436)](https://github.com/user-attachments/assets/aa0e4464-9706-411b-a705-fc1ee360e709)
+![Screenshot (438)](https://github.com/user-attachments/assets/7d26787a-0de5-4de3-932a-7cd47bfe6a43)
+
