@@ -20,15 +20,12 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationProps> = ({ isOpen , o
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
       />
       
-      {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
-        {/* Header */}
         <div className="relative p-6 pb-4">
           <button
             onClick={onClose}
@@ -37,7 +34,6 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationProps> = ({ isOpen , o
             <X className="w-5 h-5 text-gray-400" />
           </button>
           
-          {/* Warning Icon */}
           <div className="flex justify-center mb-4">
             <div className="relative">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
@@ -49,12 +45,10 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationProps> = ({ isOpen , o
             </div>
           </div>
           
-          {/* Title */}
           <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
             {title}
           </h3>
           
-          {/* Message */}
           <p className="text-gray-600 text-center leading-relaxed">
             {message}
           </p>
@@ -62,7 +56,6 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationProps> = ({ isOpen , o
 
         <div className='text-center mt-2'>{error && <span className='text-red-500'>{error}</span>}</div>
         
-        {/* Actions */}
         <div className="p-6 pt-2 flex gap-3">
           <button
             onClick={onClose}

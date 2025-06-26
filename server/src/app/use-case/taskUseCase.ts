@@ -1,35 +1,7 @@
-import { JsonValue } from "../../generated/prisma/runtime/library.js";
+import { IGetTasks, ITask } from "../../interface/ITask.js";
 import { StatusCode } from "../../interface/statusCode.js";
 import { uploadImageToCloudinary } from "../../service/cloudinary.js";
 import { TaskRepository } from "../repository/taskRepository.js";
-
-interface ITask {
-  id: string;
-  title: string;
-  description?: string | null;
-  subject: string;
-  assignedDate: Date;
-  dueDate: Date;
-  text?: string | null;
-  maxMarks: number;
-  attachments?: JsonValue; 
-  images?: JsonValue;      
-  classrooms?: JsonValue;  
-  students?: JsonValue;    
-  teacherId: string;
-  createdAt: Date;
-}
-
-interface IGetTasks{
-    page:number;
-    limit:number;
-    search?:string;
-    sort?:string;
-    teacherId?:string;
-    classroom?:string;
-    studentId?:string;
-    taskId?:string;
-}
 
 
 
@@ -42,9 +14,13 @@ export default class TaskUseCase{
 
     async addTask(data:any, teacherId:string,pdfs?: Express.Multer.File[],images?: Express.Multer.File[]): Promise<{status:number,message:string,data?:ITask}>{
        try {
+
+        if(!teacherId){
+            return {status:StatusCode.BadRequest,message:"Teacher Id is required"};
+        }
+
          const pdfUrls: string[]=[];
         const imgUrls: string[]=[];
-console.log("DATA on USECASE",data);
 
         if(pdfs && pdfs.length>0){
             for(const file of pdfs){
@@ -71,8 +47,8 @@ const result = await this.taskRepo.createTask({
   dueDate: new Date(data.dueDate),
   text: data.text,
   maxMarks: Number(data.maxMarks),
-  classrooms,          // just pass raw classrooms array
-  students: studentIds, // just pass raw students array
+  classrooms,          
+  students: studentIds, 
   teacherId,
   attachments: pdfUrls,
   images: imgUrls,

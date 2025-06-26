@@ -1,38 +1,32 @@
-import { Home, Plus, Users, LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import avatar from "../../../public/images/avatar.png"; 
-import type { RootState } from "../../state/redux/store/store";
-import useLogout from "../../services/auth/useLogout";
-import { removeAccessTokenFromSession } from "../../utils/tokenUtlis";
+import avatar from "../../../../public/images/avatar.png"; 
+import type { RootState } from "../../../state/redux/store/store";
+import useLogout from "../../../services/auth/useLogout";
+import { removeAccessTokenFromSession } from "../../../utils/tokenUtlis";
 import { useDispatch } from "react-redux";
-import { clearTeacher } from "../../state/redux/slices/teacherSlice";
-import { clearStudent } from "../../state/redux/slices/studentSlice";
+import { clearTeacher } from "../../../state/redux/slices/teacherSlice";
+import { clearStudent } from "../../../state/redux/slices/studentSlice";
 import { toast } from "sonner";
+import { menuItems } from "../../../constants/data";
 
-type MenuItem = {
-  icon: React.ComponentType<{ size?: number }>;
-  label: string;
-  path: string;
-};
+
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const teacherData = useSelector((state: RootState) => state.teacherAuth);
-
+  
   const navigate = useNavigate();
   const location = useLocation();
-  const isTeacher = location.pathname.includes("/teacher");
-
   const dispatch = useDispatch()
 
-  const {logout} = useLogout()
-  const menuItems: MenuItem[] = [
-    { icon: Home, label: "Dashboard", path: "/teacher/dashboard" },
-    { icon: Plus, label: "Tasks", path: "/teacher/tasks" },
-    { icon: Users, label: "User Lists", path: "/teacher/user-lists" },
-  ];
+  const teacherData = useSelector((state: RootState) => state.teacherAuth);
+  const isTeacher = location.pathname.includes("/teacher");
+
+
+const {logout} = useLogout()
+ 
 
   const handleLogout = async() => {
     const res = await logout()
@@ -46,7 +40,7 @@ const Sidebar = () => {
         navigate('/')
       }
     }else{
-      console.log("error",res.message)
+      console.log("error")
       toast.error('Error logging out')
     }
   };
@@ -54,7 +48,7 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/*For mobile Mobile Menu Button */}
       <button
         onClick={toggleSidebar}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-xl shadow-lg border border-gray-200 hover:bg-gray-50"
@@ -80,14 +74,14 @@ const Sidebar = () => {
         flex flex-col h-screen
       `}
       >
-        {/* Decorative background pattern */}
+        {/* background decoration for sidebar */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
           <div className="absolute top-20 right-0 w-24 h-24 bg-white rounded-full translate-x-12"></div>
           <div className="absolute bottom-20 left-0 w-20 h-20 bg-white rounded-full -translate-x-10"></div>
         </div>
 
-        {/* Teacher Profile Section */}
+        {/* Profile Section */}
         <div className="relative p-6 pb-8">
           <div className="flex flex-col items-center text-center">
             <div className="relative mb-4">
@@ -163,8 +157,6 @@ const Sidebar = () => {
           </button>
         </div>
 
-        {/* Bottom Decoration */}
-        <div className="h-1 bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400"></div>
       </div>
     </>
   );

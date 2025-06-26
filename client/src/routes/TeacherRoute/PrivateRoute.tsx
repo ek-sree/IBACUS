@@ -11,7 +11,6 @@ export const PrivateRoute: React.FC = () => {
     const checkUserAuth = async () => {
       try {
         const isAuth = await isAuthenticated("teacher"); 
-        console.log("isAuth",isAuth);
         
         setAuthStatus(isAuth);
       } catch (error) {

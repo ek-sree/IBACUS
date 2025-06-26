@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import Axios from "../../api/axios/axios"
 import { STUDENT_ENDPOINTS } from "../../api/endpoints/studentEndpoints"
 
-const useFetchTaskByStudent = (studentId:string,searchTerm,sortBy,activeTab,currentPage,itemsPerPage) => {
+const useFetchTaskByStudent = (studentId:string,searchTerm:string,sortBy:string,activeTab:string,currentPage:number,itemsPerPage:number) => {
     const [error,setError] = useState<string | null>(null)
     const [loading, setLoading] = useState<boolean>(false)
     const [tasks, setTasks] = useState([])
@@ -18,7 +18,6 @@ const useFetchTaskByStudent = (studentId:string,searchTerm,sortBy,activeTab,curr
           const response = await Axios.get(
   `${STUDENT_ENDPOINTS.GET_STUDENTS_TASKS}?studentId=${studentId}&searchTerm=${searchTerm}&sortBy=${sortBy}&status=${activeTab}&page=${currentPage}&itemsPerPage=${itemsPerPage}`
 );
-            console.log("DA",response.data);
             
             if(response.status===200){
                 setTasks(response.data.task || [])

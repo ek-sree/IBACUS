@@ -11,28 +11,36 @@ import {
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../state/redux/store/store';
 import useFetchStudentDashboard from '../../services/StudentManagment/useFetchStudentDashboard';
+import { formatDate } from '../../utils/formateDate';
+import ErrorPage from '../../common/components/ErrorPage';
+import BigLoader from '../../common/components/BigLoader';
+
 
 const Home = () => {
-
-
-  
   const studentName = useSelector((state:RootState)=>state.studentAuth.name)
   const studentId = useSelector((state:RootState)=>state.studentAuth.id)
   const {data,error,loading} = useFetchStudentDashboard(studentId!)
 
-  console.log("Data",data);
-  
-  // Sample data
-  const tasks = [
-    { id: 1, title: 'Mathematics Assignment', subject: 'Math', dueDate: '2025-06-25', status: 'pending', points: 20 },
-    { id: 2, title: 'Science Project', subject: 'Science', dueDate: '2025-06-28', status: 'pending', points: 35 },
-    { id: 3, title: 'History Essay', subject: 'History', dueDate: '2025-06-23', status: 'completed', points: 25 },
-    { id: 4, title: 'English Literature Review', subject: 'English', dueDate: '2025-06-30', status: 'pending', points: 30 },
-  ];
+const completionRate = data?.currentWeekTaskCount 
+  ? Math.round((data.currentWeekTaskSubmission / data.currentWeekTaskCount) * 100)
+  : 0;
 
-  const completedTasks = tasks.filter(task => task.status === 'completed');
-  const pendingTasks = tasks.filter(task => task.status === 'pending');
-  const totalPoints = completedTasks.reduce((sum, task) => sum + task.points, 0);
+// Calculate progress width 
+const progressWidth = data?.currentWeekTaskCount 
+  ? (data.currentWeekTaskSubmission / data.currentWeekTaskCount) * 100
+  : 0;
+
+  if(error){
+    return <div><ErrorPage/></div>
+  }
+
+  
+  if(loading){
+    return <div className='flex items-center justify-center h-full'>
+      <BigLoader/>
+      </div>
+  }
+
 
   return (
     <div className="space-y-6">
@@ -48,7 +56,7 @@ const Home = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm">Total Tasks</p>
-              <p className="text-2xl font-bold text-gray-900">{tasks.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{data?.totalTask || 0}</p>
             </div>
             <div className="bg-blue-100 p-3 rounded-lg">
               <BookOpen className="w-6 h-6 text-blue-600" />
@@ -60,7 +68,7 @@ const Home = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm">Completed</p>
-              <p className="text-2xl font-bold text-green-600">{completedTasks.length}</p>
+              <p className="text-2xl font-bold text-green-600">{data?.completedTask || 0}</p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg">
               <CheckCircle className="w-6 h-6 text-green-600" />
@@ -72,7 +80,7 @@ const Home = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm">Pending</p>
-              <p className="text-2xl font-bold text-orange-600">{pendingTasks.length}</p>
+              <p className="text-2xl font-bold text-orange-600">{data?.pendingCount || 0}</p>
             </div>
             <div className="bg-orange-100 p-3 rounded-lg">
               <Clock className="w-6 h-6 text-orange-600" />
@@ -84,7 +92,7 @@ const Home = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm">Points Earned</p>
-              <p className="text-2xl font-bold text-purple-600">{totalPoints}</p>
+              <p className="text-2xl font-bold text-purple-600">{data?.totalGrade || 0}</p>
             </div>
             <div className="bg-purple-100 p-3 rounded-lg">
               <Trophy className="w-6 h-6 text-purple-600" />
@@ -102,18 +110,18 @@ const Home = () => {
             <Calendar className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-3">
-            {tasks.slice(0, 3).map(task => (
+            {data && data.taskDetails?.map(task => (
               <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className={`w-3 h-3 rounded-full ${task.status === 'completed' ? 'bg-green-500' : 'bg-orange-500'}`}></div>
                   <div>
-                    <p className="font-medium text-gray-900">{task.title}</p>
+                    <p className="font-medium text-gray-900">{task.task.title}</p>
                     <p className="text-sm text-gray-500">{task.subject}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-purple-600">{task.points} pts</p>
-                  <p className="text-xs text-gray-500">{task.dueDate}</p>
+                  <p className={`text-sm font-medium ${task.grade === null ? 'text-red-500' : 'text-purple-600'} `}>{task?.grade || "not yet added"} pts</p>
+                  <p className="text-xs text-gray-500">{formatDate(task.task?.createdAt)}</p>
                 </div>
               </div>
             ))}
@@ -123,31 +131,31 @@ const Home = () => {
         {/* Progress Chart */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Progress Overview</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Week Progress Overview</h3>
             <TrendingUp className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Completion Rate</span>
-              <span className="text-sm font-medium">{Math.round((completedTasks.length / tasks.length) * 100)}%</span>
+              <span className="text-sm text-gray-600">Week Completion Rate</span>
+              <span className="text-sm font-medium">{completionRate}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(completedTasks.length / tasks.length) * 100}%` }}
+                style={{ width: `${progressWidth}%` }}
               ></div>
             </div>
             
             <div className="grid grid-cols-2 gap-4 mt-6">
               <div className="text-center p-3 bg-green-50 rounded-lg">
-                <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <Target className="w-8 h-8 text-green-600 mx-auto mb-2" />
                 <p className="text-sm text-gray-600">This Week</p>
-                <p className="font-bold text-green-600">{completedTasks.length} Tasks</p>
+                <p className="font-bold text-green-600">{data?.currentWeekTaskCount ||0} Tasks</p>
               </div>
               <div className="text-center p-3 bg-purple-50 rounded-lg">
-                <Target className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">Next Goal</p>
-                <p className="font-bold text-purple-600">100 Points</p>
+                <Award className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">This Week Grade</p>
+                <p className="font-bold text-purple-600">{data?.totalGradeThisWeek || 0} pts</p>
               </div>
             </div>
           </div>

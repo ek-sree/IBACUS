@@ -2,9 +2,9 @@ import { Edit, GraduationCap, Mail, Save, User } from 'lucide-react';
 import InputField from '../../common/ui/InputField';
 import { useForm } from 'react-hook-form';
 import React from 'react';
-import type { Student } from '../../services/TeacherManagment/useFetchStudents';
 import { toast } from 'sonner';
 import useEditStudent from '../../services/TeacherManagment/useEditStudent';
+import type { Student } from '../../interface/student';
 
 interface EditStudentModalProps {
   isOpen: boolean;
@@ -12,6 +12,7 @@ interface EditStudentModalProps {
   studentData?: Student;
   onSuccess:(updatedStudent: Student)=>void;
 }
+
 
 const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, studentData, onSuccess }) => {  
     
@@ -24,7 +25,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
   });
 
 
-  const id = studentData?.id
+  const id = studentData?.id as string
 
   const {editStudent,error,loading} = useEditStudent()
 
@@ -35,7 +36,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
       toast.success('Student updated successfully')
       onSuccess(result.data)
     }else{
-      toast.error(error?.message || "Something went wrong!")
+      toast.error(error || "Something went wrong!")
     }
   };
 
@@ -43,15 +44,12 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
       />
       
-      {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 scale-100">
-        {/* Header */}
         <div className="relative overflow-hidden rounded-t-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 p-6">
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative flex items-center justify-between">
@@ -66,12 +64,10 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
             </div>
           </div>
           
-          {/* Decorative elements */}
           <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
           <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-white/5 rounded-full blur-lg"></div>
         </div>
 
-        {/* Form */}
         <div className="p-6 space-y-6">
           <div className="space-y-5">
             <InputField
@@ -106,7 +102,6 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
             />
           </div>
 
-          {/* Action Buttons */}
           <div className="flex space-x-3 pt-4">
             <button
               type="button"

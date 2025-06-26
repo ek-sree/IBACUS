@@ -35,6 +35,7 @@ createStudents = async(req:Request, res:Response)=>{
             const teacherIdStr = typeof teacherId === 'string' ? teacherId : '';
             const classNameStr = typeof className === 'string' ? className : undefined;
             const searchStr = typeof search === 'string' ? search : undefined;
+            
             const response = await this.teacherUseCase.fetchAllStudents(teacherIdStr,pageNumber,limitValue,classNameStr,searchStr);
             
             res.status(response.status).json({message:response.message,data:response.data,totalCount:response.totalCount});
@@ -129,7 +130,6 @@ createStudents = async(req:Request, res:Response)=>{
             const teacherId = req.params.teacherId as string;
 
             const result = await this.teacherUseCase.getDashboardInfo(teacherId)
-            console.log("RESSSSSSSSS",result);
             
             res.status(result.status).json({message:result.message,data:result.data})
         } catch (error) {

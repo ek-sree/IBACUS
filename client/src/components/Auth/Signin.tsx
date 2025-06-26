@@ -8,6 +8,7 @@ import { setTeacher } from "../../state/redux/slices/teacherSlice";
 import { setStudent } from "../../state/redux/slices/studentSlice";
 import useGoogleSignin from "../../services/auth/useGoogleLogin";
 import useMicrosoftLogin from "../../services/auth/useMicrosoftLogin";
+import DotLoading from "../../common/components/DotLoading";
 
 const msalConfig = {
   auth: {
@@ -32,11 +33,11 @@ const Signin = () => {
   const dispatch = useDispatch();
 
   // GOOGLE LOGIN
-  const onGoogleSuccess = async (res) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onGoogleSuccess = async (res: { code: any; }) => {
     const { code } = res;
     try {
       const data = await googleSignin(code, role);
-console.log("DATA",data);
 
       if (data) {
         saveAccessTokenToSession(data.accessToken);
@@ -84,8 +85,9 @@ console.log("DATA",data);
       const idToken = loginResponse.idToken;
 
       const data = await loginWithMicrosoft(idToken,role)
-      console.log("DA",data);
-      
+if(data){
+
+     
       saveAccessTokenToSession(data.data.accessToken);
       if (isTeacher) {
         dispatch(
@@ -107,6 +109,9 @@ console.log("DATA",data);
         );
       }
       navigate(isTeacher ? "/teacher/dashboard" : "/");
+    }else{
+      setError(msLoginError||"Invalid credentials");
+    }
     } catch (err) {
       console.error("Microsoft login failed", err);
     }
@@ -154,7 +159,7 @@ console.log("DATA",data);
                 />
               </svg>
               {loadingGoogle ? (
-                <span className="animate-spin inline-block w-6 h-6 mr-2 border-b-2 border-yellow-500"></span>
+                <DotLoading/>
               ) : (
                 <span>Continue with Google</span>
               )}
@@ -173,7 +178,7 @@ console.log("DATA",data);
                 <path d="M12.5 12.5H22V22H12.5V12.5Z" fill="#FFB900" />
               </svg>
               {loadingMS ? (
-                <span className="animate-spin inline-block w-6 h-6 mr-2 border-b-2 border-yellow-500"></span>
+               <DotLoading/>
               ) : (
                 <span>Continue with Microsoft</span>
               )}

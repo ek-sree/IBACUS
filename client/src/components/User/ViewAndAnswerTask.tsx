@@ -5,7 +5,6 @@ import {
   Calendar,
   Clock,
   BookOpen,
-  User,
   FileText,
   Paperclip,
   Send,
@@ -24,24 +23,32 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../state/redux/store/store";
 import { toast } from "sonner";
 import ViewImageModal from "../../common/modal/ViewImageModal";
+import type { AnswerFormData } from "../../interface/student";
+
 
 const ViewAndAnswerTask = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const location = useLocation();
+  const navigate = useNavigate();
   const task = location.state?.task;
-
+  console.log("TSK",task);
+  
+if(!task){
+  console.log("s");
+  
+    navigate(-1);
+}
 const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefined
 
   const {addTaskAnswer,error,loading} = useAddTaskAnswer()
 
   const { id } = useParams();
-  const navigate = useNavigate();
 
-  const { control, handleSubmit, reset, formState: { isSubmitting } } = useForm({
+  const { control, handleSubmit, reset, formState: { isSubmitting } } = useForm<AnswerFormData>({
     mode: "onBlur",
     defaultValues: {
       answer: "",
@@ -50,7 +57,7 @@ const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefi
     },
   });
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data:AnswerFormData) => {
     try {
        const { attachments, images, ...rest } = data;
     const formData = new FormData();
@@ -85,7 +92,7 @@ const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefi
             navigate('/all-tasks')
             toast.success('Answer Submitted Successfully')
         }else{
-            toast.error(error?.message|| "Error occured while submitting the answer")
+            toast.error(error|| "Error occured while submitting the answer")
         }
     } catch (error) {
       console.error("Submission error:", error);
@@ -98,12 +105,12 @@ const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefi
     navigate(-1);
   };
 
-  const handlePdfPreview = (url) => {
+  const handlePdfPreview = (url:string) => {
     setPdfUrl(url);
     setIsPdfModalOpen(true);
   };
 
-  const handlePreview = (url) => {
+  const handlePreview = (url:string) => {
     setImagePreviewUrl(url);
     setIsPreviewOpen(true);
   };
@@ -135,43 +142,43 @@ const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefi
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 overflow-hidden">
           {/* Task Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-8 text-white">
-            <h2 className="text-2xl font-bold mb-2">{task.title}</h2>
+            <h2 className="text-2xl font-bold mb-2">{task?.title}</h2>
             <div className="flex flex-wrap items-center gap-6 text-indigo-100">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4" />
-                <span className="font-medium">{task.subject}</span>
+                <span className="font-medium">{task?.subject}</span>
               </div>
-              {task.teacherName && (
+              {/* {task.teacherName && (
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4" />
-                  <span className="font-medium">{task.teacherName}</span>
+                  <span className="font-medium">{task?.teacherName}</span>
                 </div>
-              )}
+              )} */}
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                <span className="font-medium">{task.maxMarks} Marks</span>
+                <span className="font-medium">{task?.maxMarks} Marks</span>
               </div>
             </div>
           </div>
 
           {/* Content */}
           <div className="p-8 space-y-8">
-            {task.description && (
+            {task?.description && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-indigo-600" /> Description
                 </h3>
                 <p className="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  {task.description}
+                  {task?.description}
                 </p>
               </div>
             )}
 
-            {task.text && (
+            {task?.text && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">Additional Instructions</h3>
                 <p className="text-gray-700 leading-relaxed bg-blue-50 p-4 rounded-xl border border-blue-100">
-                  {task.text}
+                  {task?.text}
                 </p>
               </div>
             )}
@@ -185,7 +192,7 @@ const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefi
                   </div>
                   <h4 className="font-semibold text-green-800">Assigned Date</h4>
                 </div>
-                <p className="text-green-700 font-medium">{formatDate(task.assignedDate)}</p>
+                <p className="text-green-700 font-medium">{formatDate(task?.assignedDate)}</p>
               </div>
               <div className="bg-gradient-to-br from-orange-50 to-red-50 p-6 rounded-2xl border border-orange-100">
                 <div className="flex items-center gap-3 mb-3">
@@ -194,12 +201,12 @@ const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefi
                   </div>
                   <h4 className="font-semibold text-orange-800">Due Date</h4>
                 </div>
-                <p className="text-orange-700 font-medium">{formatDate(task.dueDate)}</p>
+                <p className="text-orange-700 font-medium">{formatDate(task?.dueDate)}</p>
               </div>
             </div>
 
             {/* Attachments */}
-            {(task.attachments?.length > 0 || task.images?.length > 0) && (
+            {(task?.attachments?.length > 0 || task?.images?.length > 0) && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <Paperclip className="w-5 h-5 text-indigo-600" />
@@ -207,11 +214,11 @@ const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefi
                 </h3>
                 <div className="space-y-4">
                   {/* PDFs */}
-                  {task.attachments?.length > 0 && (
+                  {task?.attachments?.length > 0 && (
                     <div>
                       <h4 className="font-medium text-gray-700 mb-3">Documents</h4>
                       <div className="grid gap-3">
-                        {task.attachments.map((attachment, index) => (
+                        {task?.attachments.map((attachment:string, index:string) => (
                           <div
                             key={index}
                             className="flex items-center justify-between p-4 bg-red-50 border border-red-100 rounded-xl"
@@ -243,11 +250,11 @@ const studentId = useSelector((state:RootState)=>state.studentAuth.id) || undefi
                   )}
 
                   {/* Images */}
-                  {task.images?.length > 0 && (
+                  {task?.images?.length > 0 && (
                     <div>
                       <h4 className="font-medium text-gray-700 mb-3">Images</h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {task.images.map((imageUrl, index) => (
+                        {task?.images.map((imageUrl:string, index:string) => (
                           <div
                             key={index}
                             className="relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl"

@@ -3,7 +3,7 @@ import Axios from "../../api/axios/axios";
 import { TASKENDPOINTS } from "../../api/endpoints/taskEndpoints";
 
 const useDeleteTask = () => {
-    const [error,setError] = useState<string>("")
+    const [error,setError] = useState<string | null>(null)
     const [loading,setLoading] = useState<boolean>(false)
 
     const deleteTask = async (id:string) =>{
@@ -26,8 +26,9 @@ const useDeleteTask = () => {
             setLoading(false)
         }
     }
+ const resetError = () => setError(null);
 
-    return{deleteTask,error,loading}
+    return{deleteTask,error,loading,resetError}
 }
 
 export default useDeleteTask;

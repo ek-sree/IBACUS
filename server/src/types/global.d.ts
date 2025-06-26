@@ -1,4 +1,3 @@
-// global.d.ts
 import { Multer } from 'multer';
 
 declare global {

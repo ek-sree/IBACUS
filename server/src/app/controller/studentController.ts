@@ -12,12 +12,11 @@ export class StudentController{
 
      getTasksByStudent = async(req:Request,res:Response)=>{
     try {
-    //   const classroom = req.query.classroom as string
       const studentId = req.query.studentId as string
       const searchTerm = req.query.searchTerm as string
       const sortBy = req.query.sortBy as string
-     const page = Number(req.query.page) || 1;
-const itemsPerPage = Number(req.query.itemsPerPage) || 10;
+      const page = Number(req.query.page) || 1;
+      const itemsPerPage = Number(req.query.itemsPerPage) || 10;
       const status = req.query.status as string
       
       const result=await this.studentUseCase.getTasksByStudent(studentId,  searchTerm ,

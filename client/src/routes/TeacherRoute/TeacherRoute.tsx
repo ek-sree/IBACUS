@@ -7,6 +7,7 @@ import { PublicRoute } from "./PublicRoute"
 import { PrivateRoute } from "./PrivateRoute"
 import ViewStudentAnswer from "../../components/Teacher/ViewStudentAnswer"
 import ViewSingleTask from "../../components/Teacher/ViewSingleTask"
+import PageNotFound from "../../common/components/PageNotFound"
 
 const TeacherRoute = () => {
   return (
@@ -23,7 +24,7 @@ const TeacherRoute = () => {
         <Route path="/view-task/:id" element={<ViewSingleTask/>} />
         <Route path="/view-answers/:id" element={<ViewStudentAnswer/>} />
       </Route>
-        {/* <Route path="*" element={<NotFound />} /> */}
+        <Route path="*" element={<PageNotFound />} />
     </Routes>
 
   )

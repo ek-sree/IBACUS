@@ -1,7 +1,8 @@
 import React from "react";
-import { useController, type Control } from "react-hook-form";
+import { useController, type Control, type FieldError } from "react-hook-form";
 
 interface InputFieldProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: Control<any>;
   name: string;
   label?: string;
@@ -9,10 +10,11 @@ interface InputFieldProps {
   type?: string;
   required?: boolean;
   icon?: React.ReactNode;
-  error?: string | null;
+  error?: FieldError | string | null;
   className?: string;
   rows?: number;
   multiline?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rules?: Record<string, any>;
 }
 
@@ -98,10 +100,10 @@ const InputField: React.FC<InputFieldProps> = ({
         )}
       </div>
       {(fieldError || error) && (
-        <span className="text-red-500 text-xs">
-          {fieldError?.message || error}
-        </span>
-      )}
+  <span className="text-red-500 text-xs">
+    {fieldError?.message || (typeof error === 'string' ? error : error?.message)}
+  </span>
+)}
     </div>
   );
 };

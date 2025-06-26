@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, ChevronLeft, ChevronRight, Eye, Edit2, Trash2 } from "lucide-react";
+import { Search, Eye, Edit2, Trash2 } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import DropdownField from "../../common/ui/DropDownField";
 import useDebounce from "../../hooks/useDebounce";
@@ -10,35 +10,41 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../state/redux/store/store";
 import useFetchStudents from "../../services/TeacherManagment/useFetchStudents";
 import EditStudentModal from "./EditStudentModal";
+import DotLoading from "../../common/components/DotLoading";
+import ErrorPage from "../../common/components/ErrorPage";
+import type { Student } from "../../interface/student";
+import Pagination from "../../common/ui/Pagination";
+import SingleStudentViewModal from "./SingleStudentViewModal";
 
 interface FormValues {
   selectedClass: string;
 }
 
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-  class: number;
-}
 
 const StudentsListTable = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
-  const [selectedClassFilter, setSelectedClassFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage] = useState<number>(5);
+  const [selectedClassFilter, setSelectedClassFilter] = useState<string>("");
   const [isDeleteModal, setIsDeleteModal] = useState<boolean>(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [studentList, setStudentList] = useState<Student[]>([]);
   const [isEditModal,setIsEditModal] = useState<boolean>(false);
+  const [isStudentViewModal,setIsStudentViewModal] = useState<boolean>(false);
+
 
   const teacherId = useSelector((state:RootState)=>state.teacherAuth.id) || ""
-
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { students,totalCount, loading, error } = useFetchStudents(teacherId,currentPage,itemsPerPage,selectedClassFilter,debouncedSearchTerm);
-  const {deleteStudent,error:deleteError,isLoading} = useDeleteStudent()
+  const {deleteStudent,error:deleteError,isLoading,resetError} = useDeleteStudent()
+
+console.log(students);
+
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const paginatedStudents = studentList;
+
 
  useEffect(() => {
     setStudentList(students);
@@ -59,10 +65,7 @@ const StudentsListTable = () => {
     ];
   }, [students]);
 
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
 
-  const paginatedStudents = studentList;
 
   const handleClassChange = (value: string) => {
     setSelectedClassFilter(value);
@@ -78,8 +81,9 @@ const StudentsListTable = () => {
       toast.success("Student deleted successfully");
       setStudentList((prev) => prev.filter((student) => student.id !== id));
     }
-  } catch (err) {
-    toast.error("Failed to delete student");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err:any) {
+    toast.error("Failed to delete student",err?.message);
   }
 };
 
@@ -88,16 +92,14 @@ const handleEditSuccess=(updatedStudent:Student)=>{
   setIsEditModal(false)
 }
   
-  if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
  if (error) {
-  toast.error(error.message);
-  return <div className="text-red-500 text-center p-4">Error loading students</div>;
+  toast.error(error ||"Something went wrong! Please try again later.");
+  return <div className="text-red-500 text-center p-4"><ErrorPage/></div>;
 }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Controls */}
         <div className="rounded-2xl shadow-xl border border-gray-100 p-6 mb-6 backdrop-blur-sm bg-white/90 relative z-10">
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div className="relative flex-1 max-w-md">
@@ -166,13 +168,13 @@ const handleEditSuccess=(updatedStudent:Student)=>{
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center space-x-2">
-                        <button className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all duration-200 hover:scale-110">
+                        <button onClick={()=>{setIsStudentViewModal(true);setSelectedStudentId(student?.id || null)}} className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all duration-200 hover:scale-110">
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button onClick={()=>{setIsEditModal(true);setSelectedStudentId(student.id)}} className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-110">
+                        <button onClick={()=>{setIsEditModal(true);setSelectedStudentId(student?.id || null)}} className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-110">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={()=>{setIsDeleteModal(true);setSelectedStudentId(student.id)}} className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all duration-200 hover:scale-110">
+                        <button onClick={()=>{setIsDeleteModal(true);setSelectedStudentId(student?.id || null)}} className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all duration-200 hover:scale-110">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -187,64 +189,33 @@ const handleEditSuccess=(updatedStudent:Student)=>{
                 <div className="text-gray-500 text-sm">Try adjusting your search criteria</div>
               </div>
             )}
+            {
+              loading && (
+                <div className="flex justify-center items-center h-64">
+                  <DotLoading/>
+                </div>
+              )
+            }
           </div>
 
         </div>
 
         {/* Pagination */}
-        {totalPages >= 1 && (
-          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-gray-600">
-              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, students.length)} of {students.length} students
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Previous
-              </button>
-
-              <div className="flex space-x-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                      currentPage === page
-                        ? "bg-blue-600 text-white shadow-lg scale-105"
-                        : "text-gray-700 bg-white border border-gray-300 hover:bg-blue-50 hover:text-blue-600"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                Next
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        totalPages={totalPages}
+        />
       </div>
       {
         isDeleteModal &&(
           <DeleteConfirmationModal
           isOpen={isDeleteModal}
-          onClose={()=>{setIsDeleteModal(false);setSelectedStudentId(null)}}
+          onClose={()=>{setIsDeleteModal(false);setSelectedStudentId(null) ;resetError()}}
           onConfirm={()=>handleDelete(selectedStudentId!)}
           message={"Are you sure you want to delete this student? This action cannot be undone."}
           title={"Delete Student"}
-          error={deleteError?.message}
+          error={deleteError}
           isLoading={isLoading}
           />
         )
@@ -256,6 +227,15 @@ const handleEditSuccess=(updatedStudent:Student)=>{
           onClose={()=>{setIsEditModal(false);setSelectedStudentId(null)}}
           studentData={studentList.find((student)=>student.id===selectedStudentId)!}
           onSuccess={handleEditSuccess}
+          />
+        )
+      }
+      {
+        isStudentViewModal &&(
+          <SingleStudentViewModal
+          isOpen={isStudentViewModal}
+          onClose={()=>setIsStudentViewModal(false)}
+          studentData={studentList.find((student)=>student.id===selectedStudentId)!}
           />
         )
       }

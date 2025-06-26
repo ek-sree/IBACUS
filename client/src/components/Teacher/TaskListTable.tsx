@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Search,
-  ChevronLeft,
-  ChevronRight,
   Eye,
-  Edit2,
   Trash2,
   Calendar,
 } from "lucide-react";
@@ -20,32 +17,10 @@ import DeleteConfirmationModal from "../../common/modal/DeleteConformationModal"
 import useDeleteTask from "../../services/TaskManagment/useDeleteTask";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import SmallLoader from "../../common/components/SmallLoader";
+import Pagination from "../../common/ui/Pagination";
+import type { Task } from "../../interface/tsk";
 
-interface UploadedFile {
-  id?: string;          
-  file: File;
-  preview?: string | null;
-  lastModified?: number;
-  lastModifiedDate?: Date;
-  name?: string;
-  size?: number;
-  type?: string;
-}
-
-export interface Task {
-  id:string;
-  title: string;
-  description?: string;
-  subject: string;
-  assignedDate: string;  
-  dueDate: string;     
-  text: string;
-  maxMarks: number | string;
-  attachments?: UploadedFile[]; 
-  images?: UploadedFile[];     
-  students?: string[];   
-  classrooms?: string[]; 
-}
 
 const TaskListTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,7 +38,7 @@ const methods = useForm();
   const teacherId = useSelector((state:RootState)=>state?.teacherAuth?.id)|| undefined;
 
   const { tasks, totalCount, loading, error } = useFetchTask(currentPage,itemsPerPage,debouncedSearchTerm,sort,teacherId);
-  const {deleteTask,error:isDeleteError,loading:isDeleteLoading} = useDeleteTask()
+  const {deleteTask,error:isDeleteError,loading:isDeleteLoading,resetError} = useDeleteTask()
 
   const navigate = useNavigate();
   
@@ -75,7 +50,6 @@ const methods = useForm();
    
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
   
 const handleDelete=async(id:string)=>{
   try {
@@ -94,12 +68,10 @@ const handleDelete=async(id:string)=>{
   }
 }
 
-  if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Controls */}
         <div className="rounded-2xl shadow-xl border border-gray-100 p-6 mb-6 bg-white/90 relative z-10">
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
   <div className="relative flex-1 max-w-md">
@@ -182,7 +154,7 @@ const handleDelete=async(id:string)=>{
                     <td className="px-6 py-4 text-gray-600">{formatDate(task.dueDate)}</td>
                     <td className="px-6 py-4 flex justify-center space-x-2">
                       <button onClick={() => navigate(`/teacher/view-task/${task.id}` ,{ state: { task } })} className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg"><Eye className="w-4 h-4" /></button>
-                      <button className="p-2 text-green-600 hover:bg-green-100 rounded-lg"><Edit2 className="w-4 h-4" /></button>
+                      {/* <button className="p-2 text-green-600 hover:bg-green-100 rounded-lg"><Edit2 className="w-4 h-4" /></button> */}
                       <button onClick={()=>{setShowDeleteModal(true); setSelecteTaskId(task.id)}} className="p-2 text-red-600 hover:bg-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
@@ -196,10 +168,15 @@ const handleDelete=async(id:string)=>{
               </div>
             )}
             {
+              loading && (
+                <div><SmallLoader/></div>
+              )
+            }
+            {
               error && (
                 <div className="text-center py-12">
                   <div className="text-red-500 text-lg mb-2">Error fetching students</div>
-                  <div className="text-gray-500 text-sm">{error?.message}</div>
+                  <div className="text-gray-500 text-sm">{error}</div>
                 </div>
               )
             }
@@ -207,55 +184,18 @@ const handleDelete=async(id:string)=>{
         </div>
 
         {/* Pagination */}
-        {totalPages >= 1 && (
-          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-gray-600">
-              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, tasks.length)} of {tasks.length} students
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Previous
-              </button>
-
-              <div className="flex space-x-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                      currentPage === page
-                        ? "bg-blue-600 text-white shadow-lg scale-105"
-                        : "text-gray-700 bg-white border border-gray-300 hover:bg-blue-50 hover:text-blue-600"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                Next
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        />
       </div>
       {
         showDeleteModal &&(
           <DeleteConfirmationModal
           isOpen={showDeleteModal}
-          onClose={()=>{setShowDeleteModal(false); selectedTaskId(null)}}
+          onClose={()=>{setShowDeleteModal(false); setSelecteTaskId(null); ;resetError()}}
           onConfirm={()=>handleDelete(selectedTaskId!)}
           error={isDeleteError}
           isLoading={isDeleteLoading}

@@ -6,36 +6,9 @@ import { OAuth2Client } from "google-auth-library";
 import * as jose from "jose";
 import jwksClient from "jwks-rsa";
 import { AuthRepository } from "../repository/authRepository.js";
+import { AuthUser, Role } from "../../interface/IAuth.js";
 
-type AuthUser = Teacher | Student;
 
-interface Teacher {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  avatar: string;
-  createdAt: Date;
-  status: boolean;
-  // and any other fields a teacher has
-}
-
-interface Student {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  avatar: string | null;  // matches Prisma's optional
-  createdAt: Date;
-  status: boolean;
-  class: string;
-  teacherId: string;
-}
-
-enum Role {
-  TEACHER = "TEACHER",
-  STUDENT = "STUDENT",
-}
 export class AuthUseCase {
   private authRepo: AuthRepository;
   private googleClient = new OAuth2Client;
@@ -46,7 +19,7 @@ export class AuthUseCase {
     this.googleClient = new OAuth2Client(
       config.GOOGLE_CLIENT_ID,
       config.GOOGLE_SECRET,
-      "http://localhost:5173" // Redirect URI for auth code flow
+      `${config.CORS_KEY}` // Redirect URI for auth code flow
     );
      this.jwks = jwksClient({
       jwksUri: "https://login.microsoftonline.com/common/discovery/v2.0/keys",
@@ -113,7 +86,7 @@ return{status:StatusCode.NotFound,message:"User not found"};
     refreshToken?: string;
   }> {
     try {
-      // Decode header and payload without verifying
+      // Decode header and payload
       const decodedHeader = jose.decodeProtectedHeader(token); // { alg, kid, ... }
       const decodedPayload = jose.decodeJwt(token); // { iss, ... }
 

@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Calendar,
   BookOpen,
@@ -9,29 +7,13 @@ import {
   CheckSquare,
   AlertCircle,
   Hourglass,
-  Loader,
 } from "lucide-react";
 import { formatDate } from "../../utils/formateDate";
 import { useNavigate } from "react-router-dom";
+import Pagination from "../../common/ui/Pagination";
+import SmallLoader from "../../common/components/SmallLoader";
+import type { NotCompletedTaskProps } from "../../interface/studentTask";
 
-interface Task {
-  id: string;
-  title: string;
-  subject: string;
-  maxMarks: number;
-  assignedDate: string;
-  dueDate: string;
-  isCompleted: boolean;
-}
-
-interface NotCompletedTaskProps {
-  tasks: Task[];
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  itemsPerPage: number;
-  error:string;
-  loading:boolean
-}
 
 const OngoingTaskTable: React.FC<NotCompletedTaskProps> = ({
   tasks,
@@ -44,10 +26,7 @@ totalCount
 }) => {
   const navigate = useNavigate();
 
-  // Filter only not completed tasks
-  const notCompletedTasks = tasks.filter(task => !task.isCompleted);
 
-  // Function to get due status
   const getDueStatus = (dueDate: string) => {
     const today = new Date();
     const due = new Date(dueDate);
@@ -87,7 +66,6 @@ totalCount
 
   // Pagination
   const totalPages = Math.ceil(totalCount / itemsPerPage);
- const startIndex = (currentPage - 1) * itemsPerPage;
 
 
   return (
@@ -173,8 +151,8 @@ totalCount
                         <p className="font-medium text-gray-900">{formatDate(task.dueDate)}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${dueStatus.bgColor} ${dueStatus.color}`}>
+                    <td className="md:px-6 py-5">
+                      <span className={`inline-flex  items-center px-2 py-1 rounded-full text-xs font-medium ${dueStatus.bgColor} ${dueStatus.color}`}>
                         <StatusIcon className="w-3 h-3 mr-1" />
                         {dueStatus.text}
                       </span>
@@ -215,12 +193,8 @@ totalCount
           }
           {
             loading &&(
-                <div className="text-center py-16">
-                    <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Loader className="w-12 h-12 text-gray-900 animate-spin" />
-              </div>
-                    <h3 className="text-xl font-semibold text-gray-600 mb-2">Loading..</h3>
-                    <p className="text-gray-500">Loading data please wait...</p>
+                <div className="text-center py-16 flex items-center justify-center">
+                    <SmallLoader/>
                 </div>
             )
           }
@@ -228,49 +202,12 @@ totalCount
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-          <div className="text-sm text-gray-600">
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, notCompletedTasks.length)} of {notCompletedTasks.length} pending tasks
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
-            >
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Previous
-            </button>
-
-            <div className="flex space-x-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                    currentPage === page
-                      ? "bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg transform scale-105"
-                      : "text-gray-700 bg-white border border-gray-300 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 shadow-sm"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
-            >
-              Next
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </button>
-          </div>
-        </div>
-      )}
+      <Pagination
+      currentPage={currentPage}
+      onPageChange={setCurrentPage}
+      totalPages={totalPages}
+      itemsPerPage={itemsPerPage}
+      />
     </div>
   );
 };

@@ -15,6 +15,7 @@ app.use((req, res, next) => {
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp'); 
     next();
   });
+
 //  Middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -36,7 +37,7 @@ app.use('/api/student', studentRouter);
 
 
 app.listen(port, () => {
-  console.log(`✅ Server running on http://localhost:${port}`);
+  console.log(` Server running on http://localhost:${port}`);
 });
 
 export default app;

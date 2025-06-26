@@ -9,17 +9,12 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../state/redux/store/store";
-import { countDueSoon } from "../../utils/calculateDueSoon";
 import CompletedTaskTable from "./CompletedTaskTable";
 import OngoingTaskTable from "./OngoingTaskTable";
 import useFetchTaskByStudent from "../../services/StudentManagment/useFetchStudentTask";
+import { sortOptions } from "../../constants/data";
 
-const sortOptions = [
-  { value: "assignedDateAsc", label: "Assign Date asc - desc" },
-  { value: "assignedDateDesc", label: "Assigned Date desc - asc" },
-  { value: "dueDateAsc", label: "Due Date asc - desc" },
-  { value: "dueDateDesc", label: "Due Date desc - asc" },
-];
+
 
 const AllTask = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,12 +27,7 @@ const AllTask = () => {
 
   const { tasks,totalCount,completedCount,dueSoonCount,pendingCount,totalTaskCount,error: isError, loading: isLoading } = useFetchTaskByStudent(studentId!,searchTerm,sortBy,activeTab,currentPage,itemsPerPage);
 
-
-
  
-
-
-  // Reset current page when switching tabs
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab]);

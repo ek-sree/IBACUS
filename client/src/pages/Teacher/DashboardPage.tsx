@@ -1,5 +1,5 @@
 import Dashboard from "../../components/Teacher/Dashboard";
-import Sidebar from "../../components/Teacher/Sidebar";
+import Sidebar from "../../components/Teacher/layout/Sidebar";
 
 const DashboardPage = () => {
   return (

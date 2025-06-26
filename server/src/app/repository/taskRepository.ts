@@ -1,16 +1,7 @@
 import { prisma } from "../../config/prisma.js";
+import { IGetTasks } from "../../interface/ITask.js";
 import { deleteImageFromCloudinary } from "../../service/cloudinary.js";
 
-interface IGetTasks{
-    page:number;
-    limit:number;
-    search?:string;
-    sort?:string;
-    teacherId?:string;
-    classroom?:string;
-    studentId?:string;
-    taskId?:string;
-}
 
 export class TaskRepository {
 
@@ -19,7 +10,6 @@ export class TaskRepository {
     let classes: string[] = Array.isArray(data.classrooms) ? data.classrooms : [];
     let studentIds: string[] = Array.isArray(data.students) ? data.students : [];
 
-    // Gather students of the classes
     let studentsToConnect: { id: string }[] = [];
 
     if (classes.length > 0) {
@@ -30,12 +20,10 @@ export class TaskRepository {
       studentsToConnect.push(...classStudents.map((s) => ({ id: s.id })));
     }
 
-    // Add explicit students too
     if (studentIds.length > 0) {
       studentsToConnect.push(...studentIds.map((id) => ({ id })));
     }
 
-    // Remove duplicates
     studentsToConnect = Array.from(
       new Map(studentsToConnect.map((s) => [s.id, s])).values()
     );
@@ -138,7 +126,6 @@ if(!tasks || !totalCount){
 async deleteTaskById(id:string){
     try {
         const foundTask = await prisma.task.findUnique({ where: { id } });
-        console.log("DELETE",id);
         
         if(!foundTask){
             return null
@@ -148,7 +135,6 @@ async deleteTaskById(id:string){
   select: { attachments: true, images: true }
 })
 
-// 3️⃣ Gather all file URLs from submissions
 const submissionFiles: string[] = submissions.flatMap((submission) => {
   const attachments = Array.isArray(submission.attachments) ? submission.attachments : []
   const images = Array.isArray(submission.images) ? submission.images : []
@@ -158,7 +144,6 @@ const submissionFiles: string[] = submissions.flatMap((submission) => {
   ]
 }).filter((url): url is string => typeof url === "string")
 
-// 4️⃣ Delete all submission files from Cloudinary
 for (const fileUrl of submissionFiles) {
   try {
     await deleteImageFromCloudinary(fileUrl)
@@ -167,7 +152,6 @@ for (const fileUrl of submissionFiles) {
   }
 }
 
-// 5️⃣ Delete all submission
 await prisma.taskSubmission.deleteMany({ where: { taskId: id } })
     
     await prisma.task.update({

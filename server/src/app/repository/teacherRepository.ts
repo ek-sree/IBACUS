@@ -1,21 +1,7 @@
 import { prisma } from "../../config/prisma.js";
 import { Role } from "../../generated/prisma/index.js";
-import { StatusCode } from "../../interface/statusCode.js";
+import { DashboardData, StudentsData } from "../../interface/ITeacher.js";
 
-interface StudentsData{
-    email:string,
-    name:string,
-    class:string,
-}
-
-interface DashboardData {
-  studentCount: number;
-  taskCount: number;
-  totalSubmissions:number;
-  averageGradePercentage: number;
-  weeklySubmissions: number[];
-  topStudents: { name: string; email: string; totalMarks: number }[];
-}
 
 export class TeacherRepository {
 
@@ -40,7 +26,8 @@ export class TeacherRepository {
               id: true,
               name: true,
               email: true,
-              class: true
+              class: true,
+              createdAt:true
         }
       });
       return students || [];
@@ -59,26 +46,54 @@ export class TeacherRepository {
     }
   }
 
-    
-  async createStudent(data:StudentsData[],teacherId:string,role:string) {
-   try {
-     const studentsData = data.map((student)=>({
-        name:student.name,
-        email:student.email,
-        class:student.class,
-        role:role.toLowerCase() as Role,
-        avatar: "",
-        teacherId
-    }))
+   async  createStudent(
+  data: StudentsData[],
+  teacherId: string,
+  role: string
+): Promise<{ success: boolean; data?: StudentsData[]; count?: number; error?: string }> {
+  try {
+    const existingStudents = await prisma.student.findMany();
+    const existingEmails = new Set(
+      existingStudents.map((s) => s.email.toLowerCase())
+    );
 
-    const result = await prisma.student.createMany({
-        data:studentsData,
-    })
-    return result;
-   } catch (error) {
-    console.log("Error occured while creating student in teacher Repository", error)
-   }
+    const duplicates = data.filter((s) =>
+      existingEmails.has(s.email.toLowerCase())
+    );
+
+    if (duplicates.length > 0) {
+      return {
+        success: false,
+        error: `Duplicate Email(s): ${duplicates
+          .map((d) => d.email)
+          .join(", ")}`
+      };
+    }
+
+    const studentsData = data.map((student) => ({
+      name: student.name,
+      email: student.email,
+      class: student.class,
+      role: role.toLowerCase() as Role,
+      avatar: "",
+      teacherId
+    }));
+
+    const result = await prisma.student.createMany({ data: studentsData });
+
+    return {
+      success: true,
+      data,
+      count: result.count
+    };
+  } catch (error: any) {
+    console.error(
+      "Error occurred while creating students:",
+      error
+    );
+    return { success: false, error: error.message || "Internal server error" };
   }
+}
 
 
     async countStudents(teacherId?: string,className?: string,search?: string): Promise<number | null> {
@@ -104,15 +119,26 @@ export class TeacherRepository {
    }
   }
 
+
+
   async deleteStudent(id:string):Promise<StudentsData | null>{
-    console.log("ID",typeof(id));
-    console.log("ID is",id);
     
     try {
       const studentCheck = await prisma.student.findUnique({ where: { id } });
       if (!studentCheck) {
         return null;
       }
+      
+    await prisma.taskSubmission.deleteMany({ where: { studentId: id } });
+ await prisma.student.update({
+      where: { id },
+      data: {
+        tasks: {
+          set: [] 
+        }
+      }
+    });
+
       return await prisma.student.delete({
         where:{
             id
@@ -234,22 +260,18 @@ export class TeacherRepository {
 
   async findDashboardDetails(teacherId:string):Promise<DashboardData | null> {
    try {
-    // 1️⃣ Fetch student count
     const studentCount = await prisma.student.count({
       where: { teacherId, status: true },
     });
 
-    // 2️⃣ Fetch task count
     const taskCount = await prisma.task.count({
       where: { teacherId },
     });
 
-    // 3️⃣ Fetch completed submissions count
     const completedSubmissions = await prisma.taskSubmission.count({
       where: { teacherId, status: true },
     });
 
-    // 4️⃣ Fetch all graded submissions for average grade
     const gradedSubmissionsWithTask = await prisma.taskSubmission.findMany({
   where: { teacherId, grade: { gte: 0 } },
   select: {
@@ -258,15 +280,13 @@ export class TeacherRepository {
   },
 });
 
-// Compute average percentage
 const averageGradePercentage = gradedSubmissionsWithTask.length
   ? gradedSubmissionsWithTask.reduce((sum, sub) => {
-      const grade = sub.grade ?? 0; // Default null grades to 0
+      const grade = sub.grade ?? 0; 
       const pct = (grade / sub.task.maxMarks) * 100;
       return sum + pct;
     }, 0) / gradedSubmissionsWithTask.length
   : 0;
-    // 5️⃣ Fetch weekly submission trend
     const fourWeeksAgo = new Date();
     fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
 
@@ -278,7 +298,6 @@ const averageGradePercentage = gradedSubmissionsWithTask.length
       select: { createdAt: true },
     });
 
-    // Initialize weekly buckets
     const weeklySubmissions = Array(4).fill(0);
     submissionsByDate.forEach((submission) => {
       const weekIndex = Math.floor(
@@ -290,7 +309,6 @@ const averageGradePercentage = gradedSubmissionsWithTask.length
       }
     });
 
-    // 6️⃣ Fetch top students by sum of marks
     const topStudentsByMarks = await prisma.taskSubmission.groupBy({
       by: ['studentId'],
       where: {
@@ -304,7 +322,6 @@ const averageGradePercentage = gradedSubmissionsWithTask.length
       take: 5,
     });
 
-    // Fetch student info
     const topStudents = await Promise.all(
       topStudentsByMarks.map(async (s) => {
         const student = await prisma.student.findUnique({
@@ -320,7 +337,6 @@ const averageGradePercentage = gradedSubmissionsWithTask.length
       })
     );
 
-    // ✅ Assemble dashboard data
     const data: DashboardData = {
       studentCount,
       taskCount,

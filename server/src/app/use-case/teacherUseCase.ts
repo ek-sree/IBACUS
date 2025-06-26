@@ -1,19 +1,7 @@
+import { StudentAndClassResult, StudentsData } from "../../interface/ITeacher.js";
 import { StatusCode } from "../../interface/statusCode.js";
 import { validateEmail } from "../../utils/validation.js";
 import { TeacherRepository } from "../repository/teacherRepository.js";
-
-interface StudentsData {
-  id?:string;
-  email: string;
-  name: string;
-  class: string;
-  role?: string;
-}
-
-interface StudentAndClassResult {
-  students: StudentsData[];
-  className: { value: string; label: string }[];
-}
 
 
 export class TeacherUseCase {
@@ -23,31 +11,42 @@ export class TeacherUseCase {
     this.teacherRepo = new TeacherRepository();
   }
 
-  async addStudents(data: StudentsData[], teacherId: string):Promise<{status:number,message:string,data?:StudentsData[]}> {
-    try {      
-        const existingStudents = await this.teacherRepo.findAllStudents();
+ async  addStudents(
+  data: StudentsData[],
+  teacherId: string
+): Promise<{ status: number; message: string; data?: StudentsData[] }> {
 
-    const existingEmails = new Set(existingStudents.map((s) => s.email));
-
-    const duplicate = data.find((s) => existingEmails.has(s.email));
-
-    if (duplicate) {
-      return {status:StatusCode.BadRequest, message: `Duplicate Email: ${duplicate.email}`}
-    }
-    const role = "student";
-    const result = await this.teacherRepo.createStudent(data, teacherId, role);
-    if(!result){
-      return {status:StatusCode.BadRequest, message:"Unable to create students"};
-    }
-    return { status: StatusCode.Created, message: `Successfully added student ${result.count}` ,data };
-    } catch (error:any) {
-        console.log("Error while addStudent",error)
-        return { status: StatusCode.InternalServerError, message:error.message };
-    }
+  if(!teacherId){
+    return {
+      status: StatusCode.BadRequest,
+      message: "Teacher id is required",
+    };
   }
+
+  const result = await this.teacherRepo.createStudent(data, teacherId, "student");
+
+  if (!result.success) {
+    return {
+      status: StatusCode.BadRequest,
+      message: result.error || "Unable to create students"
+    };
+  }
+
+  return {
+    status: StatusCode.Conflict,
+    message: `Successfully added ${result.count} student(s)`,
+    data: result.data
+  };
+}
+
 
   async fetchAllStudents(teacherId:string,pageNumber:number,limit:number,className?:string,search?:string): Promise<{status: number;message: string;data?: StudentsData[];totalCount?:number}> {
     try {
+
+      if(!teacherId){
+        return {status:StatusCode.BadRequest,message:"Teacher id is required"}
+      }
+
       const result = await this.teacherRepo.findAllStudents(teacherId,pageNumber,limit,className,search);
       const total = await this.teacherRepo.countStudents(teacherId,className,search)
       
@@ -63,6 +62,9 @@ export class TeacherUseCase {
 
   async deleteStudent(id:string):Promise<{status:number,message:string}>{
     try {
+      if(!id){
+        return {status:StatusCode.BadRequest,message:"Invalid input"}
+      }
       const result = await this.teacherRepo.deleteStudent(id);
       if(!result){
         return {status:StatusCode.InternalServerError,message:`Cant delete this student error occured`}
@@ -136,6 +138,9 @@ export class TeacherUseCase {
 
   async addSubmissionGrade(id:string,grade:number):Promise<{status:number,message:string}>{
     try {
+      if(!id.trim() || isNaN(Number(grade))){
+        return {status:StatusCode.BadRequest,message:"Invalid Input"};
+      }
       const result = await this.teacherRepo.addSubmissionGrade(id,grade);
       if(!result){
         return {status:StatusCode.InternalServerError,message:"Unable to add grade"};
@@ -149,8 +154,12 @@ export class TeacherUseCase {
 
   async getDashboardInfo(teacherId:string):Promise<{status:number, message:string,data?:any}>{
     try {
+
+      if(!teacherId){
+        return{status:StatusCode.BadRequest,message:"Invalid Input"}
+      }
+
       const result = await this.teacherRepo.findDashboardDetails(teacherId)
-      console.log("ds",result);
       
       if(!result){
         return{status:StatusCode.BadRequest, message:"No data found"}

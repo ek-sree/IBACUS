@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, type DragEvent } from "react";
 import { useForm } from "react-hook-form";
 import { Upload, Plus, Trash2, X, Users, FileText, CheckCircle, User, Mail, GraduationCap, AlertCircle } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -8,33 +8,53 @@ import { toast } from 'sonner';
 import InputField from "../../common/ui/InputField";
 import useAddStudent from "../../services/TeacherManagment/useAddStudent";
 
-const AddStudents = ({ isOpen, onClose,onSuccess }) => {
-  const [activeTab, setActiveTab] = useState('csv');
-  const [csvData, setCsvData] = useState([]);
-  const [manualUsers, setManualUsers] = useState([]);
-  const [pendingUsers, setPendingUsers] = useState([{ id: Date.now() }]);
-  const [csvFile, setCsvFile] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
-  const [duplicateEmails, setDuplicateEmails] = useState([]);
 
-  const fileInputRef = useRef(null);
+interface StudentsData{
+  id?:number;
+    email:string,
+    name:string,
+    class:string,
+}
+
+interface UserRowProps {
+  user: StudentsData;
+  onDelete: (id: string) => void;
+  source: string;
+}
+
+interface AddStudentsProps{
+  isOpen:boolean;
+  onClose:()=>void;
+  onSuccess:(response:StudentsData)=>void;
+}
+
+const AddStudents: React.FC<AddStudentsProps> = ({ isOpen, onClose,onSuccess }) => {
+  const [activeTab, setActiveTab] = useState('csv');
+  const [csvData, setCsvData] = useState<StudentsData[]>([]);
+  const [manualUsers, setManualUsers] = useState<StudentsData[]>([]);
+  const [pendingUsers, setPendingUsers] = useState([{ id: Date.now() }]);
+  const [csvFile, setCsvFile] = useState<File|null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [duplicateEmails, setDuplicateEmails] = useState<string[]>([]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { control, handleSubmit: handleFormSubmit, reset, getValues } = useForm();
 
   const teacherId = useSelector((state:RootState)=>state.teacherAuth?.id);
 
-  const {addStudent,error,loading} = useAddStudent()
+  const {addStudent,loading} = useAddStudent()
 
   if (!isOpen) return null;
 
  
 
   // Handle CSV file upload
-  const handleFileUpload = (file) => {
+  const handleFileUpload = (file:File) => {
     if (file && file.type === 'text/csv') {
       setCsvFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
-        const text = e.target.result;
+        const text = e?.target?.result as string;
         const rows = text.split('\n').filter(row => row.trim());
         const headers = rows[0].split(',').map(h => h.trim());
         
@@ -65,7 +85,7 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
   };
 
   // Handle drag and drop
-  const handleDrag = (e) => {
+  const handleDrag = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
@@ -75,7 +95,7 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
     }
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e:DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -85,68 +105,94 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
   };
 
   // Handle done for all manual users
-  const handleDoneAllManualUsers = handleFormSubmit((data) => {
-    const newUsers = [];
-    pendingUsers.forEach((user, index) => {
-      const name = data[`name_${user.id}`];
-      const email = data[`email_${user.id}`];
-      const userClass = data[`class_${user.id}`];
-      
-      if (name && email && userClass) {
-        newUsers.push({
-          id: user.id,
-          name,
-          email,
-          class: userClass
-        });
-      }
-    });
+ const handleDoneAllManualUsers = handleFormSubmit((data) => {
+  const newUsers: StudentsData[] = [];
+  pendingUsers.forEach((user) => {
+    const name = data[`name_${user.id}`];
+    const email = data[`email_${user.id}`];
+    const userClass = data[`class_${user.id}`];
     
-    const duplicates = checkDuplicateEmails(newUsers);
-    if (duplicates.length > 0) {
-      setDuplicateEmails(duplicates);
-    } else {
-      setDuplicateEmails([]);
-      setManualUsers([...manualUsers, ...newUsers]);
-      setPendingUsers([{ id: Date.now() }]);
-      reset();
+    if (name && email && userClass) {
+      newUsers.push({
+        id: user.id,
+        name,
+        email,
+        class: userClass
+      });
     }
   });
+  
+  // Check duplicates against ALL users (csv + manual + new)
+  const allUsers = [...csvData, ...manualUsers, ...newUsers];
+  const duplicates = checkDuplicateEmails(allUsers);
+  
+  if (duplicates.length > 0) {
+    setDuplicateEmails(duplicates);
+  } else {
+    setDuplicateEmails([]);
+    setManualUsers([...manualUsers, ...newUsers]);
+    setPendingUsers([{ id: Date.now() }]);
+    reset();
+  }
+});
 
   // Delete user
-  const deleteUser = (id, type) => {
-    if (type === 'csv') {
-      setCsvData(csvData.filter(user => user.id !== id));
-    } else {
-      setManualUsers(manualUsers.filter(user => user.id !== id));
-    }
-    // Recheck duplicates after deletion
-    const remainingUsers = [...csvData, ...manualUsers].filter(user => user.id !== id);
-    setDuplicateEmails(checkDuplicateEmails(remainingUsers, []));
-  };
+  const deleteUser = (id: string, type: string) => {
+  // First update the relevant state
+  if (type === 'csv') {
+    setCsvData(csvData.filter(user => user?.id?.toString() !== id));
+  } else {
+    setManualUsers(manualUsers.filter(user => user?.id?.toString() !== id));
+  }
+  
+  // Then check for duplicates in the NEXT state
+  setDuplicateEmails(() => {
+    const nextCsvData = type === 'csv' ? 
+      csvData.filter(user => user?.id?.toString() !== id) : 
+      csvData;
+    const nextManualUsers = type === 'manual' ? 
+      manualUsers.filter(user => user?.id?.toString() !== id) : 
+      manualUsers;
+    
+    return checkDuplicateEmails([...nextCsvData, ...nextManualUsers]);
+  });
+};
 
   // Submit all users
-  const handleSubmit = async() => {
+  const handleSubmit = async () => {
     const allUsers = [...csvData, ...manualUsers];
+    
+    // Frontend validation
     if (duplicateEmails.length !== 0) {
-      return
+        toast.error("Please fix duplicate emails before submitting");
+        return;
     }
-    if(!teacherId){
-      toast.error("credientials are missing login again")
-      return
+    
+    if (!teacherId) {
+        toast.error("Credentials are missing. Please login again");
+        return;
     }
-     try {
-      const response = await addStudent(allUsers,teacherId);
-      
-      if(response){
-        toast.success("student added successfully");
-        onSuccess(response)
-        onClose()
-      }
-     } catch (error) {
-      console.error("Error occured while adding student",error)
-     }
-  };
+    
+    if (allUsers.length === 0) {
+        toast.error("Please add at least one student");
+        return;
+    }
+
+    try {
+        const result = await addStudent(allUsers, teacherId);
+        
+         if (result.success) {
+      toast.success("Students added successfully");
+      onSuccess(result.data);
+      onClose();
+    } else {
+      toast.error(result.error || "Error occurred while adding students");
+    }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error:any) {
+    toast.error(error?.message || "An unexpected error occurred");
+  }
+};
 
   const allUsers = [...csvData, ...manualUsers];
 
@@ -245,7 +291,7 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
                     type="file"
                     accept=".csv"
                     ref={fileInputRef}
-                    onChange={(e) => handleFileUpload(e.target.files[0])}
+                    onChange={(e) =>{if(e?.target?.files && e?.target?.files[0]){ handleFileUpload(e?.target?.files[0])}}}
                     className="hidden"
                   />
                   <button
@@ -258,7 +304,7 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
                     <div className="mt-4 p-3 bg-green-50 rounded-lg">
                       <div className="flex items-center justify-center gap-2 text-green-700">
                         <CheckCircle className="w-4 h-4" />
-                        <span className="font-medium">{csvFile.name}</span>
+                        <span className="font-medium">{csvFile?.name}</span>
                       </div>
                     </div>
                   )}
@@ -306,7 +352,7 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
                           placeholder="Enter email address"
                           required={true}
                           icon={<Mail className="w-4 h-4" />}
-                          error={duplicateEmails.includes(getValues(`email_${user.id}`)) ? 'This email is already in use' : null}
+                          error={duplicateEmails.includes(getValues(`email_${user.id}`)) ? 'This email is already in use': null }
                         />
                         <InputField
                           control={control}
@@ -353,7 +399,7 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
                       <UserRow
                         key={user.id}
                         user={user}
-                        onDelete={() => deleteUser(user.id, 'csv')}
+                        onDelete={() => deleteUser(user?.id?.toString() || '', 'csv')}
                         source="CSV"
                       />
                     ))}
@@ -361,7 +407,7 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
                       <UserRow
                         key={user.id}
                         user={user}
-                        onDelete={() => deleteUser(user.id, 'manual')}
+                        onDelete={() => deleteUser(user?.id?.toString() || '', 'manual')}
                         source="Manual"
                       />
                     ))}
@@ -387,7 +433,7 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
             </button>
             <button
               onClick={handleSubmit}
-              disabled={allUsers.length === 0 || duplicateEmails.length > 0 || loading}
+              disabled={allUsers.length === 0 || loading}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
             >
               Add {allUsers.length} Student{allUsers.length !== 1 ? 's' : ''}
@@ -400,7 +446,7 @@ const AddStudents = ({ isOpen, onClose,onSuccess }) => {
 };
 
 // User Row Component
-const UserRow = ({ user, onDelete, source }) => (
+const UserRow = ({ user, onDelete, source }:UserRowProps) => (
   <div className="grid grid-cols-4 gap-4 p-4 hover:bg-white transition-colors">
     <div className="font-medium text-gray-800">{user.name}</div>
     <div className="text-gray-600">{user.email}</div>
@@ -410,7 +456,7 @@ const UserRow = ({ user, onDelete, source }) => (
         {source}
       </span>
       <button
-        onClick={onDelete}
+        onClick={()=>onDelete(user?.id?.toString()||'')}
         className="p-1 text-gray-400 hover:text-red-500 transition-colors"
       >
         <Trash2 className="w-4 h-4" />

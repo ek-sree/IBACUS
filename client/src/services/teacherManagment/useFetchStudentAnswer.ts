@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import Axios from "../../api/axios/axios";
 import { TEACHER_ENDPOINTS } from "../../api/endpoints/teacherEndpoints";
+import type { StudentAnswer } from "../../interface/student";
+
+
 
 const useFetchStudentAnswer = (taskId: string,studentId:string) => {
-    const [studentAnswers, setStudentAnswers] = useState();
+    const [studentAnswers, setStudentAnswers] = useState<StudentAnswer | null>();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -23,6 +26,8 @@ const useFetchStudentAnswer = (taskId: string,studentId:string) => {
         } catch (error:any) {
             console.error("Error occured while fetching student answer",error)
             setError(error.response?.data.message || error.message || "Something went wrong")
+        }finally{
+            setLoading(false)
         }
     } 
 

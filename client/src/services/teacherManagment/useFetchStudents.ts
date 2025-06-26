@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import Axios from "../../api/axios/axios";
 import { TEACHER_ENDPOINTS } from "../../api/endpoints/teacherEndpoints";
+import type { Student } from "../../interface/student";
 
-export interface Student {
-  id: string;
-  name: string;
-  email: string;
-  class: number;
-}
 
 const useFetchStudents = (
 teacherId:string,
@@ -18,13 +13,10 @@ teacherId:string,
 ) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  useEffect(() => {
-    fetchStudents();
-  }, [page, limit, selectedClass, searchTerm]);
-
+ 
   const fetchStudents = async () => {
     setLoading(true);
     setError(null);
@@ -50,14 +42,20 @@ teacherId:string,
       } else {
         setError(response?.data?.message || "Something went wrong");
       }
-    } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
       console.error("Error occurred while fetching all student data:", error);
-      setError(error);
+      setError(error.message||"Error occured while fetching all student data.");
     } finally {
       setLoading(false);
     }
   };
   
+   useEffect(() => {
+    fetchStudents();
+  }, [page, limit, selectedClass, searchTerm]);
+
+
   return { students,totalCount, loading, error, fetchStudents };
 };
 

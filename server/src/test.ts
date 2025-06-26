@@ -1,6 +1,5 @@
-// src/test.ts
 import { createRequire } from "module";
-const require = createRequire(import.meta.url); // CommonJS loader
+const require = createRequire(import.meta.url); 
 const multer = require("multer");
 
-console.log("✅ Multer version:", multer().constructor.name);
+console.log(" Multer version:", multer().constructor.name);

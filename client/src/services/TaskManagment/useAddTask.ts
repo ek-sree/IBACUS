@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Axios from "../../api/axios/axios";
-import { TEACHER_ENDPOINTS } from "../../api/endpoints/teacherEndpoints";
 import { TASKENDPOINTS } from "../../api/endpoints/taskEndpoints";
 
 interface UploadedFile {

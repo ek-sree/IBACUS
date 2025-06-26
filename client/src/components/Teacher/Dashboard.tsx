@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Chart from 'react-apexcharts';
 import useFetchDashboard from '../../services/TeacherManagment/useFetchDashboard';
 import { useSelector } from 'react-redux';
@@ -20,23 +20,43 @@ const [radialChartSeries, setRadialChartSeries] = useState<number[]>([0]);
 useEffect(() => {
   if (data) {
     const completed = data.totalSubmissions || 0;
-    const notCompleted = (data.taskCount || 0) - completed;    
-    setCompletedTasks(completed);
-    setNotCompletedTasks(notCompleted);
-    console.log('Average grade percentage:', data.averageGradePercentage);
+    const possibleSubmission =  (data.studentCount || 0) * (data.taskCount || 0);
+    console.log("Possible",possibleSubmission);
+    
+    const notCompleted = possibleSubmission - completed;
+    setCompletedTasks(Math.round(completed));
+    setNotCompletedTasks(Math.round(notCompleted));
     setRadialChartSeries([Number(data.averageGradePercentage) || 0]);
   }
 }, [data]);
+useEffect(()=>{
+  if(completedTasks && notCompletedTasks){
+    console.log('notCompleted:', completedTasks,notCompletedTasks);
 
+  }
+},[])
 
 
   // Chart configs
-  const pieChartOptions = {
+ const pieChartOptions = useMemo(() => ({
     chart: { type: 'pie' },
     labels: ['Completed Tasks', 'Not Completed Tasks'],
     colors: ['#10B981', '#EF4444'],
-  };
-  const pieChartSeries = [completedTasks, notCompletedTasks];
+    dataLabels: {
+      enabled: true,
+      formatter: (_: number, opts: any) => {
+        return opts.w.globals.series[opts.seriesIndex];
+      },
+    },
+    tooltip: {
+      y: {
+        formatter: (val: number) => `${val}`,
+      },
+    },
+  }), []);
+
+  const pieChartSeries = useMemo(() => [completedTasks, notCompletedTasks], [completedTasks, notCompletedTasks]);
+
 
   const barChartOptions = {
     chart: { type: 'bar' },

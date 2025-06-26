@@ -1,4 +1,4 @@
-import Sidebar from "../../components/Teacher/Sidebar"
+import Sidebar from "../../components/Teacher/layout/Sidebar"
 import Task from "../../components/Teacher/Task"
 
 const TaskPage = () => {

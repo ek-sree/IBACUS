@@ -8,35 +8,58 @@ interface StudentsData{
     class:string,
 }
 
+interface ApiError {
+  message?: string;
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 
-const useAddStudent = () =>{
-    const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(false);
 
-    const addStudent = async (data:StudentsData[],teacherId:string)=>{
-        try {
-            
-            setLoading(true);
-             const response = await Axios.post(`${TEACHER_ENDPOINTS.CREATE_STUDENT}/${teacherId}`, data);
-                
-            if(response.status===201){
-                return response.data.data;
-            }else{
-                setError(response.data.message || "Failed to add student")
-                return false;
-            }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error:any) {
-            console.error("Error adding student",error)
-            setError(error?.message || "Error adding student");
-        }finally{
-            setLoading(false);
-        }
+const useAddStudent = () => {
+    const [error, setError] = useState<ApiError | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+
+   const addStudent = async (data: StudentsData[], teacherId: string) => {
+  try {
+    setError(null);
+    setLoading(true);
+    const response = await Axios.post(
+      `${TEACHER_ENDPOINTS.CREATE_STUDENT}/${teacherId}`, 
+      data
+    );
+
+    if (response.status === 201) {
+      return { success: true, data: response.data.data };
+    } else {
+      const errMessage = response.data.message || "Failed to add student";
+      setError({ message: errMessage });
+      return { success: false, error: errMessage };
+    }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    let errorMessage = "Error adding student";
+
+    if (error.response) {
+      errorMessage = error.response.data?.message || error.message;
+    } else if (error.request) {
+      errorMessage = "No response from server";
+    } else {
+      errorMessage = error.message;
     }
 
-    return{addStudent,error,loading}
+    setError({ message: errorMessage }); // Save in state for UI
+    return { success: false, error: errorMessage }; // Also return the error message
+  } finally {
+    setLoading(false);
+  }
+};
 
+
+    return { addStudent, error, loading };
 }
 
 export default useAddStudent;

@@ -1,7 +1,13 @@
-// checkDuplicateEmails.ts
-export const checkDuplicateEmails = (newUsers, existingUsers = []) => {
-  const duplicates = [];
-  const emailCount = {};
+interface UserWithEmail {
+  email: string;
+}
+
+export const checkDuplicateEmails = (
+  newUsers: UserWithEmail[],
+  existingUsers: UserWithEmail[] = []
+): string[] => {
+  const duplicates: string[] = [];
+  const emailCount: Record<string, number> = {};
 
   // Count all emails (existing + new)
   [...existingUsers, ...newUsers].forEach(user => {

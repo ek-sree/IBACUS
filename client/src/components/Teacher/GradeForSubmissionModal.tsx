@@ -1,13 +1,15 @@
-import { useForm } from 'react-hook-form';
-import { X, Award, CheckCircle,  BookOpen } from 'lucide-react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { X, Award,  BookOpen } from 'lucide-react';
 import InputField from '../../common/ui/InputField';
 import useAddSubmissionGrade from '../../services/TeacherManagment/useAddSubmissionGrade';
 import { toast } from 'sonner';
+import type React from 'react';
+import type { GradeFormValues, GradeForSubmissionModalProps } from '../../interface/gradeSubmission';
 
 
-const GradeForSubmissionModal = ({isOpen,onClose,submissionId,submissionDate,studentName,totalMark}) => {  
+const GradeForSubmissionModal: React.FC<GradeForSubmissionModalProps> = ({isOpen,onClose,submissionId,submissionDate,studentName,totalMark=0}) => {  
   
-  const { control, handleSubmit, watch, formState: { errors } } = useForm({
+  const { control, handleSubmit, watch,  } = useForm<GradeFormValues>({
     defaultValues: {
       gradeMarks: '',
       // feedback: ''
@@ -19,7 +21,7 @@ const GradeForSubmissionModal = ({isOpen,onClose,submissionId,submissionDate,stu
   const gradeMarks = watch('gradeMarks');
   const percentage = gradeMarks ? Math.round((parseFloat(gradeMarks) / totalMark) * 100) : 0;
   
-  const getGradeColor = (percentage) => {
+  const getGradeColor = (percentage:number) => {
     if (percentage >= 90) return 'text-green-600';
     if (percentage >= 80) return 'text-blue-600';
     if (percentage >= 70) return 'text-yellow-600';
@@ -27,7 +29,7 @@ const GradeForSubmissionModal = ({isOpen,onClose,submissionId,submissionDate,stu
     return 'text-red-600';
   };
   
-  const getGradeLetter = (percentage) => {
+  const getGradeLetter = (percentage:number) => {
     if (percentage >= 90) return 'A+';
     if (percentage >= 80) return 'A';
     if (percentage >= 70) return 'B';
@@ -35,13 +37,18 @@ const GradeForSubmissionModal = ({isOpen,onClose,submissionId,submissionDate,stu
     return 'F';
   };
   
-  const onSubmit = async (data) => {
+  const onSubmit:SubmitHandler<GradeFormValues> = async (data) => {
+
+    if(!submissionId){
+      toast.error("An error occured try later")      
+      return
+    }
     const response = await addSubmissionGrade(submissionId,data.gradeMarks);
     if(response){
       onClose();
       toast.success('Grade submitted successfully.');
     }else{
-      toast.error(error.message || 'Failed to submit grade.');
+      toast.error(error || 'Failed to submit grade.');
     }
     
   };

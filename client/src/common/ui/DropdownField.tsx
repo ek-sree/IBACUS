@@ -32,10 +32,12 @@ interface DropdownFieldProps<T extends FieldValues> {
   leftIcon?: React.ReactNode;
   isLoading?: boolean;
   onFocus?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onChange?: (value: any) => void;
   className?: string;
   maxSelections?: number;
   error?: FieldError;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rules?: any;
 }
 
@@ -83,6 +85,7 @@ const DropdownField = <T extends FieldValues>({
     );
   }, [options, searchTerm]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const isValueEqual = (value1: any, value2: any) => {
     if (typeof value1 === "object" && typeof value2 === "object") {
       return JSON.stringify(value1) === JSON.stringify(value2);

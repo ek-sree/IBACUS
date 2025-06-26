@@ -13,8 +13,9 @@ const useLogout = () => {
                 console.error("Error occured while logging out.",response.data.message)
                 return false
             }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error:any) {
-            console.error("Error occured while logging out. Please try again later!")
+            console.error("Error occured while logging out. Please try again later!",error)
         }
     }
   return {logout};

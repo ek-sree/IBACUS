@@ -8,7 +8,6 @@ import {
   Image,
   Download,
   Clock,
-  CheckCircle,
   Eye,
   Star,
   Award,
@@ -20,12 +19,15 @@ import PdfViewerModal from "../../common/modal/PdfViewerModal";
 import ViewImageModal from "../../common/modal/ViewImageModal";
 import { formatDate } from "../../utils/formateDate";
 import GradeForSubmissionModal from "./GradeForSubmissionModal";
+import ErrorPage from "../../common/components/ErrorPage";
+import BigLoader from "../../common/components/BigLoader";
+
 
 const ViewStudentAnswer = () => {
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isGradeModal,setIsModalGrade] = useState<boolean>(false);
 
   const { id } = useParams();
@@ -44,16 +46,26 @@ const ViewStudentAnswer = () => {
   console.log("ANSWERDATAA", studentAnswers);
   console.log("sub", submittedStudent);
 
-  const handlePdfPreview = (url) => {
+  const handlePdfPreview = (url:string) => {
     setPdfUrl(url);
     setIsPdfModalOpen(true);
   };
 
-  const handlePreview = (url) => {
+  const handlePreview = (url:string) => {
     setImagePreviewUrl(url);
     setIsPreviewOpen(true);
   };
 
+if(error){
+  return <div><ErrorPage/></div>
+}
+
+  
+  if(loading){
+    return <div className='flex items-center justify-center h-full'>
+      <BigLoader/>
+      </div>
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -102,7 +114,7 @@ const ViewStudentAnswer = () => {
             </div>
 
             {/* Images Section */}
-            {studentAnswers?.images.length > 0 && (
+            {studentAnswers?.images && studentAnswers?.images.length > 0 && (
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-6">
                   <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -113,7 +125,7 @@ const ViewStudentAnswer = () => {
 
                 <div className="p-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {studentAnswers.images.map((imageUrl, index) => (
+                    {studentAnswers?.images.map((imageUrl, index) => (
                       <div
                         key={index}
                         className="relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl"
@@ -147,7 +159,7 @@ const ViewStudentAnswer = () => {
             )}
 
             {/* Attachments Section */}
-            {studentAnswers?.attachments.length > 0 && (
+            {studentAnswers?.attachments && studentAnswers?.attachments.length > 0 && (
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-green-600 to-teal-600 px-8 py-6">
                   <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -158,7 +170,7 @@ const ViewStudentAnswer = () => {
 
                 <div className="p-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {studentAnswers.attachments.map((attachment, index) => (
+                    {studentAnswers?.attachments.map((attachment, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-4 bg-red-50 border border-red-100 rounded-xl"
@@ -264,9 +276,9 @@ const ViewStudentAnswer = () => {
               </div>
 
               <div className="p-6 space-y-3">
-                <button onClick={()=>{setIsModalGrade(true)}} className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md">
+                <button disabled={studentAnswers?.grade !== null} onClick={()=>{setIsModalGrade(true)}} className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md">
                   <Award size={18} />
-                  Grade Submission
+                  {studentAnswers?.grade ===null ? "Grade Submission" : "Already Submitted"}
                 </button>
 
                 <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-sm hover:shadow-md">
@@ -328,11 +340,11 @@ const ViewStudentAnswer = () => {
         />
       )}
       {
-        isGradeModal &&(
+        isGradeModal && studentAnswers &&(
           <GradeForSubmissionModal
           isOpen={isGradeModal}
           onClose={()=>setIsModalGrade(false)}
-          submissionId={studentAnswers.id!}
+          submissionId={studentAnswers.id}
           submissionDate={studentAnswers?.createdAt}
           studentName={submittedStudent?.name}
           totalMark={studentAnswers?.marks}

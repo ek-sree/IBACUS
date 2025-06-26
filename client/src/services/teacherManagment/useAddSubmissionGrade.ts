@@ -6,7 +6,7 @@ const useAddSubmissionGrade = () => {
   const [error,setError] = useState<string|null>(null)
   const [loading, setLoading] = useState<boolean>(false);
 
-  const addSubmissionGrade = async (submissionId: string, grade:number) => {
+  const addSubmissionGrade = async (submissionId: string, grade:string) => {
     try{
       setError(null);
       setLoading(true);

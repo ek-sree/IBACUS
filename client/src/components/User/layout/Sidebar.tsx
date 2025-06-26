@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Home, BookOpen, User, X, LogOut, Menu, Bell } from 'lucide-react';
+import  { useState } from 'react';
+import { X, LogOut, Menu, Bell } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { toast } from 'sonner';
@@ -8,6 +8,7 @@ import { clearStudent } from '../../../state/redux/slices/studentSlice';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../state/redux/store/store';
 import { removeAccessTokenFromSession } from '../../../utils/tokenUtlis';
+import { studentSidebarItems } from '../../../constants/data';
 
 const Sidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,12 +20,7 @@ const Sidebar = () => {
   const dispatch = useDispatch();
   const { logout } = useLogout();
 
-  const sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home, path: "/" },
-    { id: 'tasks', label: 'All Tasks', icon: BookOpen, path: "/all-tasks" },
-    { id: 'profile', label: 'Profile', icon: User, path: "/profile" },
-  ];
-
+ 
   const handleLogout = async () => {
     try {
       const res = await logout();
@@ -34,7 +30,7 @@ const Sidebar = () => {
         navigate("/signin");
         toast.success('Logged out successfully');
       } else {
-        console.log("error", res?.message);
+        console.log("error", res);
         toast.error('Error logging out');
       }
     } catch (error) {
@@ -43,7 +39,7 @@ const Sidebar = () => {
     }
   };
 
-  const handleNavClick = (path) => {
+  const handleNavClick = (path:string) => {    
     navigate(path);
     setSidebarOpen(false);
   };
@@ -91,7 +87,7 @@ const Sidebar = () => {
         
         {/* Navigation Menu */}
         <nav className="mt-6 px-3">
-          {sidebarItems.map(item => {
+          {studentSidebarItems.map(item => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (

@@ -1,18 +1,18 @@
-import { ChevronLeft, ChevronRight, Eye, Search, UserCheck } from "lucide-react"
+import {  Eye, Search, UserCheck } from "lucide-react"
 import { formatDate } from "../../utils/formateDate";
 import { useNavigate } from "react-router-dom";
+import type React from "react";
+import Pagination from "../../common/ui/Pagination";
+import type { StudentSubmissionProps, Submission } from "../../interface/student";
 
-const StudentSubmissionTable = ({ taskId,submissions, totalCount, loading, error, page, limit, searchTerm, setPage, setLimit, setSearchTerm }) => {
+const StudentSubmissionTable: React.FC<StudentSubmissionProps> = ({ taskId,submissions, totalCount, loading, error, page, limit, searchTerm, setPage, setSearchTerm }) => {
   console.log(submissions);
   
     const navigate = useNavigate()
   
     const totalPages = Math.ceil(totalCount / limit);
-  const startIndex = (page - 1) * limit;
-console.log("STUDENTCOMID",submissions);
 
-  const handleNavigate=(submission)=>{
-    console.log("SUBMISSION ID", submission.id);
+  const handleNavigate=(submission:Submission)=>{
     
     navigate(`/teacher/view-answers/${submission.id}`,{state:{taskId,submittedStudent: submission }})
     
@@ -110,52 +110,16 @@ console.log("STUDENTCOMID",submissions);
             )}
           </tbody>
         </table>
+        {error && <div className="py-4 px-8 text-red-600">{error}</div>}
       </div>
 
       {/* Pagination */}
-      <div className="px-8 py-4 border-t border-gray-200">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-gray-600">
-            Showing {startIndex + 1} to {Math.min(startIndex + limit, totalCount)} of {totalCount} entries
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-              className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Previous
-            </button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                <button
-                  key={pageNum}
-                  onClick={() => setPage(pageNum)}
-                  className={`w-10 h-10 flex items-center justify-center text-sm font-medium rounded-md transition-all ${
-                    page === pageNum
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={page === totalPages}
-              className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              Next
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </button>
-          </div>
-        </div>
-      </div>
+     <Pagination
+     currentPage={page}
+     onPageChange={setPage}
+     totalPages={totalPages}
+     itemsPerPage={limit}
+     />
     </div>
   )
 }

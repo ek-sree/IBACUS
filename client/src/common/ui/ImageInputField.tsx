@@ -1,7 +1,20 @@
-import { Controller } from "react-hook-form";
-import { X, Plus, Upload, FileText } from "lucide-react";
+import { Controller, type Control, type FieldError, type Merge } from "react-hook-form";
+import { X, Plus } from "lucide-react";
 
-const ImageInputField = ({ control, name, label, error, multiple = false, acceptedTypes }) => {
+interface ImageInputFieldProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  control: Control<any>;
+  name: string;
+  label: string;
+  error?: FieldError | string | Merge<FieldError, (FieldError | undefined)[]> | undefined;
+  multiple?: boolean;
+  acceptedTypes?: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rules?: any; 
+}
+
+
+const ImageInputField = ({ control, name, label, error, multiple = false, acceptedTypes }:ImageInputFieldProps) => {
   return (
     <div className="flex flex-col space-y-3">
       <label className="font-semibold text-gray-800 text-sm uppercase tracking-wide">{label}</label>
