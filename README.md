@@ -7,7 +7,7 @@ A full-stack web application that allows **Teachers** and **Students** to intera
 
 ## 🚪 Login Routes
 
-- **👨‍🎓 Student Login** → [`/`](http://localhost:5173/signin)
+- **👨‍🎓 Student Login** → [`/signin`](http://localhost:5173/signin)
 - **👨‍🏫 Teacher Login** → [`/teacher/signin`](http://localhost:5173/teacher/signin)
 
 > These are the main routes for logging into the portal. Teacher and Student will be automatically redirected to their dashboards after login.
